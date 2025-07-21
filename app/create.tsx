@@ -16,9 +16,10 @@ export default function CreateEventScreen() {
 
     // For now, we just go back and pass the date (name could be added later)
     router.push({
-      pathname: '/',
-      params: { date },
+    pathname: '/',
+    params: { date, name: eventName },
     });
+
   };
 
   return (
