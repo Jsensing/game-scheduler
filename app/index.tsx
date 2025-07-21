@@ -1,3 +1,4 @@
+// app/index.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -26,7 +27,7 @@ export default function Home() {
     useLocalSearchParams<{ date?: string; name?: string }>();
 
   const [selectedDate, setSelectedDate] = useState('');
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<Event[]>([]); // ✅ initialized as empty array
   const [loading, setLoading] = useState(true);
 
   // Load events from AsyncStorage
@@ -35,10 +36,17 @@ export default function Home() {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored) {
-          setEvents(JSON.parse(stored));
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setEvents(parsed);
+          } else {
+            console.warn('Stored events are not an array:', parsed);
+            setEvents([]);
+          }
         }
       } catch (err) {
         console.error('Failed to load events:', err);
+        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -56,20 +64,25 @@ export default function Home() {
     }
   };
 
-  // When returning from /create
+  // Handle returned event from /create
   useEffect(() => {
     if (newEventDate && newEventName) {
       const newEntry = { date: newEventDate, name: newEventName };
-      const updatedEvents = [...events, newEntry];
-      setEvents(updatedEvents);
-      saveEvents(updatedEvents);
+
+      setEvents((prevEvents) => {
+        const updatedEvents = [...prevEvents, newEntry];
+        saveEvents(updatedEvents);
+        return updatedEvents;
+      });
     }
   }, [newEventDate, newEventName]);
 
-  // Get events for selected date
-  const filteredEvents = events.filter((event) => event.date === selectedDate);
+  // Get events for the selected date
+  const filteredEvents = Array.isArray(events)
+    ? events.filter((event) => event.date === selectedDate)
+    : [];
 
-  // Convert to markedDates
+  // Build marked dates
   const markedDates = events.reduce((acc, event) => {
     acc[event.date] = {
       marked: true,
