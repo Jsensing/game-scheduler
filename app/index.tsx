@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STORAGE_KEY = 'calendar_events';
 
@@ -23,30 +24,26 @@ type Event = {
 
 export default function Home() {
   const router = useRouter();
+  const insets = useSafeAreaInsets(); // ✅ Hook placed at top of component
+
   const { date: newEventDate, name: newEventName } =
     useLocalSearchParams<{ date?: string; name?: string }>();
 
   const [selectedDate, setSelectedDate] = useState('');
-  const [events, setEvents] = useState<Event[]>([]); // ✅ initialized as empty array
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load events from AsyncStorage
+  // Load events from storage
   useEffect(() => {
     const loadEvents = async () => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            setEvents(parsed);
-          } else {
-            console.warn('Stored events are not an array:', parsed);
-            setEvents([]);
-          }
+        const parsed = stored ? JSON.parse(stored) : [];
+        if (Array.isArray(parsed)) {
+          setEvents(parsed);
         }
       } catch (err) {
         console.error('Failed to load events:', err);
-        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -55,38 +52,34 @@ export default function Home() {
     loadEvents();
   }, []);
 
-  // Save events to AsyncStorage
-  const saveEvents = async (updatedEvents: Event[]) => {
+  // Save events to storage
+  const saveEvents = async (updated: Event[]) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEvents));
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (err) {
       console.error('Failed to save events:', err);
     }
   };
 
-  // Handle returned event from /create
+  // Add event when returning from /create
   useEffect(() => {
     if (newEventDate && newEventName) {
       const newEntry = { date: newEventDate, name: newEventName };
 
-      setEvents((prevEvents) => {
-        const updatedEvents = [...prevEvents, newEntry];
-        saveEvents(updatedEvents);
-        return updatedEvents;
+      setEvents((prev) => {
+        const updated = [...prev, newEntry];
+        saveEvents(updated);
+        return updated;
       });
     }
   }, [newEventDate, newEventName]);
 
-  // Get events for the selected date
-  const filteredEvents = Array.isArray(events)
-    ? events.filter((event) => event.date === selectedDate)
-    : [];
+  const filteredEvents = events.filter((e) => e.date === selectedDate);
 
-  // Build marked dates
-  const markedDates = events.reduce((acc, event) => {
-    acc[event.date] = {
+  const markedDates = events.reduce((acc, e) => {
+    acc[e.date] = {
       marked: true,
-      selected: event.date === selectedDate,
+      selected: e.date === selectedDate,
       selectedColor: 'blue',
     };
     return acc;
@@ -126,9 +119,7 @@ export default function Home() {
               },
             }),
           }}
-          onDayPress={(day) => {
-            setSelectedDate(day.dateString);
-          }}
+          onDayPress={(day) => setSelectedDate(day.dateString)}
         />
 
         <View style={styles.eventList}>
@@ -152,7 +143,7 @@ export default function Home() {
         </View>
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
         <Button
           title="Create Event"
           onPress={handleCreate}
@@ -166,6 +157,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'white',
   },
   calendarContainer: {
     flex: 1,
@@ -173,18 +165,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   footer: {
-    padding: 20,
-    paddingBottom: 40,
+    paddingTop: 10,
+    paddingHorizontal: 20,
     borderTopWidth: 1,
     borderColor: '#eee',
+    backgroundColor: 'white',
   },
   eventList: {
     marginTop: 20,
   },
   label: {
     fontWeight: 'bold',
-    marginBottom: 5,
     fontSize: 16,
+    marginBottom: 5,
   },
   noEvents: {
     fontStyle: 'italic',
