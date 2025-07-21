@@ -1,13 +1,14 @@
 // app/index.tsx
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
-import { Button, SafeAreaView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Button, SafeAreaView, StyleSheet, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
 export default function Home() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ date?: string }>();
+  const { date: newEventDate } = useLocalSearchParams<{ date?: string }>();
 
+  const [selectedDate, setSelectedDate] = useState('');
   const [markedDates, setMarkedDates] = useState({});
 
   const markDate = useCallback((date: string) => {
@@ -21,24 +22,47 @@ export default function Home() {
     }));
   }, []);
 
-  // When returning from the create screen with a date
-  React.useEffect(() => {
-    if (params?.date) {
-      markDate(params.date);
+  useEffect(() => {
+    if (newEventDate) {
+      markDate(newEventDate);
     }
-  }, [params?.date]);
+  }, [newEventDate]);
+
+  const handleCreate = () => {
+    if (!selectedDate) {
+      Alert.alert('Please select a date first');
+      return;
+    }
+
+    router.push({
+      pathname: '/create',
+      params: { date: selectedDate },
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <Calendar
-        markedDates={markedDates}
+        markedDates={{
+          ...markedDates,
+          ...(selectedDate && {
+            [selectedDate]: {
+              selected: true,
+              selectedColor: 'green',
+            },
+          }),
+        }}
         onDayPress={(day) => {
-          console.log('Selected:', day.dateString);
+          setSelectedDate(day.dateString);
         }}
       />
 
       <View style={styles.buttonContainer}>
-        <Button title="Create Event" onPress={() => router.push('/create')} />
+        <Button
+          title="Create Event"
+          onPress={handleCreate}
+          disabled={!selectedDate}
+        />
       </View>
     </SafeAreaView>
   );
