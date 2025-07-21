@@ -1,33 +1,41 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Button,
+  FlatList,
   SafeAreaView,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
 const STORAGE_KEY = 'calendar_events';
 
+type Event = {
+  date: string;
+  name: string;
+};
+
 export default function Home() {
   const router = useRouter();
-  const { date: newEventDate } = useLocalSearchParams<{ date?: string }>();
+  const { date: newEventDate, name: newEventName } =
+    useLocalSearchParams<{ date?: string; name?: string }>();
 
   const [selectedDate, setSelectedDate] = useState('');
-  const [markedDates, setMarkedDates] = useState<Record<string, any>>({});
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load events on app start
+  // Load events from AsyncStorage
   useEffect(() => {
-    const loadMarkedDates = async () => {
+    const loadEvents = async () => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored) {
-          setMarkedDates(JSON.parse(stored));
+          setEvents(JSON.parse(stored));
         }
       } catch (err) {
         console.error('Failed to load events:', err);
@@ -36,39 +44,40 @@ export default function Home() {
       }
     };
 
-    loadMarkedDates();
+    loadEvents();
   }, []);
 
-  // Save events to storage
-  const saveMarkedDates = async (dates: Record<string, any>) => {
+  // Save events to AsyncStorage
+  const saveEvents = async (updatedEvents: Event[]) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dates));
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEvents));
     } catch (err) {
       console.error('Failed to save events:', err);
     }
   };
 
-  // Add a new event date
-  const markDate = useCallback((date: string) => {
-    const updated = {
-      ...markedDates,
-      [date]: {
-        selected: true,
-        marked: true,
-        selectedColor: 'blue',
-      },
-    };
-
-    setMarkedDates(updated);
-    saveMarkedDates(updated);
-  }, [markedDates]);
-
-  // Handle date returned from /create
+  // When returning from /create
   useEffect(() => {
-    if (newEventDate) {
-      markDate(newEventDate);
+    if (newEventDate && newEventName) {
+      const newEntry = { date: newEventDate, name: newEventName };
+      const updatedEvents = [...events, newEntry];
+      setEvents(updatedEvents);
+      saveEvents(updatedEvents);
     }
-  }, [newEventDate]);
+  }, [newEventDate, newEventName]);
+
+  // Get events for selected date
+  const filteredEvents = events.filter((event) => event.date === selectedDate);
+
+  // Convert to markedDates
+  const markedDates = events.reduce((acc, event) => {
+    acc[event.date] = {
+      marked: true,
+      selected: event.date === selectedDate,
+      selectedColor: 'blue',
+    };
+    return acc;
+  }, {} as Record<string, any>);
 
   const handleCreate = () => {
     if (!selectedDate) {
@@ -108,6 +117,26 @@ export default function Home() {
             setSelectedDate(day.dateString);
           }}
         />
+
+        <View style={styles.eventList}>
+          <Text style={styles.label}>
+            {selectedDate
+              ? `Events on ${selectedDate}`
+              : 'Select a date to view events'}
+          </Text>
+
+          {filteredEvents.length === 0 ? (
+            <Text style={styles.noEvents}>No events for this day</Text>
+          ) : (
+            <FlatList
+              data={filteredEvents}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item }) => (
+                <Text style={styles.eventItem}>• {item.name}</Text>
+              )}
+            />
+          )}
+        </View>
       </View>
 
       <View style={styles.footer}>
@@ -128,11 +157,28 @@ const styles = StyleSheet.create({
   calendarContainer: {
     flex: 1,
     paddingTop: 50,
+    paddingHorizontal: 10,
   },
   footer: {
     padding: 20,
     borderTopWidth: 1,
     borderColor: '#eee',
+  },
+  eventList: {
+    marginTop: 20,
+  },
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 5,
+    fontSize: 16,
+  },
+  noEvents: {
+    fontStyle: 'italic',
+    color: '#888',
+  },
+  eventItem: {
+    fontSize: 15,
+    marginBottom: 4,
   },
   centered: {
     flex: 1,
