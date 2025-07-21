@@ -42,22 +42,24 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Calendar
-        markedDates={{
-          ...markedDates,
-          ...(selectedDate && {
-            [selectedDate]: {
-              selected: true,
-              selectedColor: 'green',
-            },
-          }),
-        }}
-        onDayPress={(day) => {
-          setSelectedDate(day.dateString);
-        }}
-      />
+      <View style={styles.calendarContainer}>
+        <Calendar
+          markedDates={{
+            ...markedDates,
+            ...(selectedDate && {
+              [selectedDate]: {
+                selected: true,
+                selectedColor: 'green',
+              },
+            }),
+          }}
+          onDayPress={(day) => {
+            setSelectedDate(day.dateString);
+          }}
+        />
+      </View>
 
-      <View style={styles.buttonContainer}>
+      <View style={styles.footer}>
         <Button
           title="Create Event"
           onPress={handleCreate}
@@ -71,10 +73,14 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  calendarContainer: {
+    flex: 1,
     paddingTop: 50,
   },
-  buttonContainer: {
-    marginTop: 20,
-    paddingHorizontal: 20,
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderColor: '#eee',
   },
 });
