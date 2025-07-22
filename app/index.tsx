@@ -61,8 +61,21 @@ export default function Home() {
   };
 
   const handleSaveEvent = () => {
-    if (!eventName.trim()) {
+    const trimmedName = eventName.trim();
+
+    if (!trimmedName) {
       Alert.alert('Event name required');
+      return;
+    }
+
+    const duplicate = events.find(
+      (e) => 
+        e.date === selectedDate &&
+        e.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (duplicate) {
+      Alert.alert('Duplicate Event', 'An event with the same name already exists on this day.');
       return;
     }
 
@@ -72,15 +85,6 @@ export default function Home() {
     saveEvents(updated);
     setEventName('');
     setCreateModalVisible(false);
-
-    const duplicate = events.find(
-      (e) => e.date === selectedDate && e.name === eventName
-    );
-    if (duplicate) {
-      Alert.alert('Event already exists for this date');
-      return;
-    }
-
   };
 
   const handleDeleteEvent = (eventToDelete: Event) => {
