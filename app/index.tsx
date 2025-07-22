@@ -31,6 +31,8 @@ export default function Home() {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState('');
 
   // Load events from storage
   useEffect(() => {
@@ -196,17 +198,65 @@ export default function Home() {
 
       {/* Event Detail Modal */}
       <Modal
-        visible={detailModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setDetailModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.label}>Event:</Text>
+  visible={detailModalVisible}
+  animationType="slide"
+  transparent={true}
+  onRequestClose={() => setDetailModalVisible(false)}
+>
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <Text style={styles.label}>Event:</Text>
+
+        {isEditing ? (
+          <>
+            <TextInput
+              style={styles.input}
+              value={editedName}
+              onChangeText={setEditedName}
+              placeholder="Edit event name"
+            />
+            <Button
+              title="Save Changes"
+              onPress={() => {
+                if (!selectedEvent) return;
+                const updatedEvents = events.map((e) =>
+                  e.date === selectedEvent.date && e.name === selectedEvent.name
+                    ? { ...e, name: editedName }
+                    : e
+                );
+                setEvents(updatedEvents);
+                saveEvents(updatedEvents);
+                setSelectedEvent({ ...selectedEvent, name: editedName });
+                setIsEditing(false);
+              }}
+            />
+            <View style={{ marginTop: 10 }}>
+              <Button
+                title="Cancel"
+                onPress={() => {
+                  setIsEditing(false);
+                  setEditedName('');
+                }}
+                color="#888"
+              />
+            </View>
+          </>
+        ) : (
+          <>
             <Text style={styles.eventItem}>{selectedEvent?.name}</Text>
 
-            <View style={{ marginTop: 20 }}>
+            <View style={{ marginTop: 10 }}>
+              <Button
+                title="Edit Event"
+                onPress={() => {
+                  setIsEditing(true);
+                  setEditedName(selectedEvent?.name ?? '');
+                }}
+              />
+            </View>
+
+            <View style={{ marginTop: 10 }}>
               <Button
                 title="Delete Event"
                 color="red"
@@ -221,13 +271,21 @@ export default function Home() {
             <View style={{ marginTop: 10 }}>
               <Button
                 title="Close"
-                onPress={() => setDetailModalVisible(false)}
+                onPress={() => {
+                  setDetailModalVisible(false);
+                  setIsEditing(false);
+                  setEditedName('');
+                }}
                 color="#888"
               />
             </View>
-          </View>
-        </View>
-      </Modal>
+          </>
+        )}
+      </View>
+    </View>
+  </TouchableWithoutFeedback>
+</Modal>
+
     </SafeAreaView>
   );
 }
