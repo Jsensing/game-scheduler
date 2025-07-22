@@ -7,6 +7,7 @@ import {
   FlatList,
   Keyboard,
   Modal,
+  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -27,7 +28,9 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState('');
   const [events, setEvents] = useState<Event[]>([]);
   const [eventName, setEventName] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   // Load events from storage
   useEffect(() => {
@@ -66,7 +69,30 @@ export default function Home() {
     setEvents(updated);
     saveEvents(updated);
     setEventName('');
-    setModalVisible(false);
+    setCreateModalVisible(false);
+  };
+
+  const handleDeleteEvent = (eventToDelete: Event) => {
+    Alert.alert(
+      'Delete Event',
+      `Are you sure you want to delete "${eventToDelete.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            const updated = events.filter(
+              (e) =>
+                !(e.date === eventToDelete.date && e.name === eventToDelete.name)
+            );
+            setEvents(updated);
+            saveEvents(updated);
+            setDetailModalVisible(false);
+          },
+        },
+      ]
+    );
   };
 
   const filteredEvents = events.filter((e) => e.date === selectedDate);
@@ -113,7 +139,14 @@ export default function Home() {
               data={filteredEvents}
               keyExtractor={(_, index) => index.toString()}
               renderItem={({ item }) => (
-                <Text style={styles.eventItem}>• {item.name}</Text>
+                <Pressable
+                  onPress={() => {
+                    setSelectedEvent(item);
+                    setDetailModalVisible(true);
+                  }}
+                >
+                  <Text style={styles.eventItem}>• {item.name}</Text>
+                </Pressable>
               )}
             />
           )}
@@ -123,17 +156,17 @@ export default function Home() {
       <View style={styles.footer}>
         <Button
           title="Create Event"
-          onPress={() => setModalVisible(true)}
+          onPress={() => setCreateModalVisible(true)}
           disabled={!selectedDate}
         />
       </View>
 
-      {/* Modal */}
+      {/* Create Event Modal */}
       <Modal
-        visible={modalVisible}
+        visible={createModalVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => setCreateModalVisible(false)}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
@@ -150,7 +183,7 @@ export default function Home() {
                 <Button
                   title="Cancel"
                   onPress={() => {
-                    setModalVisible(false);
+                    setCreateModalVisible(false);
                     setEventName('');
                   }}
                   color="#888"
@@ -159,6 +192,41 @@ export default function Home() {
             </View>
           </View>
         </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Event Detail Modal */}
+      <Modal
+        visible={detailModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setDetailModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.label}>Event:</Text>
+            <Text style={styles.eventItem}>{selectedEvent?.name}</Text>
+
+            <View style={{ marginTop: 20 }}>
+              <Button
+                title="Delete Event"
+                color="red"
+                onPress={() => {
+                  if (selectedEvent) {
+                    handleDeleteEvent(selectedEvent);
+                  }
+                }}
+              />
+            </View>
+
+            <View style={{ marginTop: 10 }}>
+              <Button
+                title="Close"
+                onPress={() => setDetailModalVisible(false)}
+                color="#888"
+              />
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -193,7 +261,7 @@ const styles = StyleSheet.create({
   },
   eventItem: {
     fontSize: 15,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   input: {
     borderColor: '#ccc',
