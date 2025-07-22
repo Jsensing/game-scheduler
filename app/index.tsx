@@ -1,19 +1,20 @@
 // app/index.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Button,
   FlatList,
+  Keyboard,
+  Modal,
   SafeAreaView,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STORAGE_KEY = 'calendar_events';
 
@@ -23,15 +24,10 @@ type Event = {
 };
 
 export default function Home() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets(); // ✅ Hook placed at top of component
-
-  const { date: newEventDate, name: newEventName } =
-    useLocalSearchParams<{ date?: string; name?: string }>();
-
   const [selectedDate, setSelectedDate] = useState('');
   const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [eventName, setEventName] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Load events from storage
   useEffect(() => {
@@ -44,15 +40,13 @@ export default function Home() {
         }
       } catch (err) {
         console.error('Failed to load events:', err);
-      } finally {
-        setLoading(false);
       }
     };
 
     loadEvents();
   }, []);
 
-  // Save events to storage
+  // Save to storage
   const saveEvents = async (updated: Event[]) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -61,18 +55,19 @@ export default function Home() {
     }
   };
 
-  // Add event when returning from /create
-  useEffect(() => {
-    if (newEventDate && newEventName) {
-      const newEntry = { date: newEventDate, name: newEventName };
-
-      setEvents((prev) => {
-        const updated = [...prev, newEntry];
-        saveEvents(updated);
-        return updated;
-      });
+  const handleSaveEvent = () => {
+    if (!eventName.trim()) {
+      Alert.alert('Event name required');
+      return;
     }
-  }, [newEventDate, newEventName]);
+
+    const newEntry = { date: selectedDate, name: eventName };
+    const updated = [...events, newEntry];
+    setEvents(updated);
+    saveEvents(updated);
+    setEventName('');
+    setModalVisible(false);
+  };
 
   const filteredEvents = events.filter((e) => e.date === selectedDate);
 
@@ -84,26 +79,6 @@ export default function Home() {
     };
     return acc;
   }, {} as Record<string, any>);
-
-  const handleCreate = () => {
-    if (!selectedDate) {
-      Alert.alert('Please select a date first');
-      return;
-    }
-
-    router.push({
-      pathname: '/create',
-      params: { date: selectedDate },
-    });
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.centered}>
-        <ActivityIndicator size="large" />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -119,7 +94,9 @@ export default function Home() {
               },
             }),
           }}
-          onDayPress={(day) => setSelectedDate(day.dateString)}
+          onDayPress={(day) => {
+            setSelectedDate(day.dateString);
+          }}
         />
 
         <View style={styles.eventList}>
@@ -143,13 +120,46 @@ export default function Home() {
         </View>
       </View>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
+      <View style={styles.footer}>
         <Button
           title="Create Event"
-          onPress={handleCreate}
+          onPress={() => setModalVisible(true)}
           disabled={!selectedDate}
         />
       </View>
+
+      {/* Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.label}>Event Name:</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Meeting"
+                value={eventName}
+                onChangeText={setEventName}
+              />
+              <Button title="Save Event" onPress={handleSaveEvent} />
+              <View style={{ marginTop: 10 }}>
+                <Button
+                  title="Cancel"
+                  onPress={() => {
+                    setModalVisible(false);
+                    setEventName('');
+                  }}
+                  color="#888"
+                />
+              </View>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -165,11 +175,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   footer: {
-    paddingTop: 10,
-    paddingHorizontal: 20,
+    padding: 20,
     borderTopWidth: 1,
     borderColor: '#eee',
-    backgroundColor: 'white',
   },
   eventList: {
     marginTop: 20,
@@ -187,9 +195,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginBottom: 4,
   },
-  centered: {
+  input: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 15,
+  },
+  modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
 });
