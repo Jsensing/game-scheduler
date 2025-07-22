@@ -113,13 +113,19 @@ export default function Home() {
   const filteredEvents = events.filter((e) => e.date === selectedDate);
 
   const markedDates = events.reduce((acc, e) => {
-    acc[e.date] = {
-      marked: true,
-      selected: e.date === selectedDate,
-      selectedColor: 'blue',
-    };
-    return acc;
-  }, {} as Record<string, any>);
+  const isSelected = e.date === selectedDate;
+
+  acc[e.date] = {
+    selected: true,
+    selectedColor: isSelected ? '#228B22' : '#90ee90', // darker if selected
+    marked: true,
+    dotColor: 'white', // optional: white dot if you still want dots
+    disableTouchEvent: false,
+  };
+
+  return acc;
+}, {} as Record<string, any>);
+
 
   return (
     <SafeAreaView style={styles.container}>
