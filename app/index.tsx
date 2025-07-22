@@ -229,6 +229,8 @@ export default function Home() {
                 saveEvents(updatedEvents);
                 setSelectedEvent({ ...selectedEvent, name: editedName });
                 setIsEditing(false);
+                setDetailModalVisible(false);
+                setEditedName('');
               }}
             />
             <View style={{ marginTop: 10 }}>
