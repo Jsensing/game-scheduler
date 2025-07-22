@@ -72,6 +72,15 @@ export default function Home() {
     saveEvents(updated);
     setEventName('');
     setCreateModalVisible(false);
+
+    const duplicate = events.find(
+      (e) => e.date === selectedDate && e.name === eventName
+    );
+    if (duplicate) {
+      Alert.alert('Event already exists for this date');
+      return;
+    }
+
   };
 
   const handleDeleteEvent = (eventToDelete: Event) => {
