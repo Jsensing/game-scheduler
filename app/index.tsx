@@ -4,6 +4,7 @@ import {
   Button,
   FlatList,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -15,6 +16,7 @@ import {
   View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEvents } from '../useEvents';
 
 interface Event {
@@ -24,6 +26,7 @@ interface Event {
 }
 
 export default function Home() {
+  const insets = useSafeAreaInsets();
   const [selectedDate, setSelectedDate] = useState('');
   const [eventName, setEventName] = useState('');
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -70,7 +73,7 @@ export default function Home() {
       marked[e.date] = {
         customStyles: {
           container: {
-            backgroundColor: '#90ee90', // Light green
+            backgroundColor: '#90ee90',
             borderRadius: 0,
           },
           text: {
@@ -84,7 +87,7 @@ export default function Home() {
       marked[selectedDate] = {
         customStyles: {
           container: {
-            backgroundColor: '#228B22', // Darker green for selected
+            backgroundColor: '#228B22',
             borderRadius: 0,
           },
           text: {
@@ -137,7 +140,11 @@ export default function Home() {
         </View>
       </View>
 
-      <SafeAreaView style={styles.footer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={20}
+        style={[styles.footer, { paddingBottom: insets.bottom || 20 }]}
+      >
         <View style={styles.footerInner}>
           <Button
             title="Create Event"
@@ -145,9 +152,8 @@ export default function Home() {
             disabled={!selectedDate}
           />
         </View>
-      </SafeAreaView>
+      </KeyboardAvoidingView>
 
-      {/* Create Event Modal */}
       <Modal
         visible={createModalVisible}
         animationType="slide"
@@ -180,7 +186,6 @@ export default function Home() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Event Detail Modal */}
       <Modal
         visible={detailModalVisible}
         animationType="slide"
@@ -280,7 +285,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     backgroundColor: '#fff',
-    paddingBottom: Platform.OS === 'android' ? 20 : 0,
   },
   footerInner: {
     paddingHorizontal: 20,
