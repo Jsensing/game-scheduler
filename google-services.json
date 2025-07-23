@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "298701316276",
+    "project_id": "game-scheduler-7483d",
+    "storage_bucket": "game-scheduler-7483d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:298701316276:android:a6267a1f7bf604d786f7e1",
+        "android_client_info": {
+          "package_name": "com.jacobstudios.gamescheduler"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGUPZYreAxv3DJ11bIxmoSvt993-V9VkY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
