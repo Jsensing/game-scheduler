@@ -289,6 +289,7 @@ const styles = StyleSheet.create({
   footerInner: {
     paddingHorizontal: 20,
     paddingTop: 10,
+    marginBottom: 30,
   },
   eventList: {
     marginTop: 20,
