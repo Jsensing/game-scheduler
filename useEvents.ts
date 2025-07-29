@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import {
   addDoc,
   collection,
@@ -9,12 +10,14 @@ import {
 import { useEffect, useState } from 'react';
 import { db } from './firebase';
 
+const COLLECTION_NAME = Constants.expoConfig?.extra?.USE_DEV_COLLECTION ? 'events_dev' : 'events';
+
 export function useEvents() {
   const [events, setEvents] = useState<{ id: string; name: string; date: string }[]>([]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, 'events'),
+      collection(db, COLLECTION_NAME),
       (snapshot) => {
         const fetched = snapshot.docs.map((doc) => {
           const data = doc.data();
@@ -42,9 +45,9 @@ export function useEvents() {
     if (duplicate) return false;
 
     try {
-      await addDoc(collection(db, 'events'), {
+      await addDoc(collection(db, COLLECTION_NAME), {
         name,
-        date, // Pass in the selectedDate
+        date,
       });
       console.log('✅ Event added to Firebase');
       return true;
@@ -56,7 +59,7 @@ export function useEvents() {
 
   const deleteEvent = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'events', id));
+      await deleteDoc(doc(db, COLLECTION_NAME, id));
       console.log(`🗑️ Event with ID ${id} deleted`);
     } catch (error) {
       console.error('❌ Failed to delete event:', error);
@@ -65,7 +68,7 @@ export function useEvents() {
 
   const editEvent = async (id: string, newName: string) => {
     try {
-      await updateDoc(doc(db, 'events', id), {
+      await updateDoc(doc(db, COLLECTION_NAME, id), {
         name: newName,
       });
       console.log(`✏️ Event with ID ${id} updated`);
