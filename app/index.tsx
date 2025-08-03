@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import * as Updates from 'expo-updates';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Button,
@@ -36,6 +37,25 @@ export default function Home() {
   const [editedName, setEditedName] = useState('');
 
   const { events, addEvent, deleteEvent, editEvent } = useEvents();
+
+  useEffect(() => {
+    const checkForUpdate = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        console.log('🔄 Update available?', update.isAvailable);
+
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          console.log('✅ Update fetched. Reloading app...');
+          await Updates.reloadAsync();
+        }
+      } catch (e) {
+        console.log('🚨 Error checking for update:', e);
+      }
+    };
+
+    checkForUpdate();
+  }, []);
 
   const handleSaveEvent = async () => {
     const trimmedName = eventName.trim();
@@ -116,7 +136,7 @@ export default function Home() {
 
         <View style={styles.eventList}>
           <Text style={styles.label}>
-            {selectedDate ? `Events on ${selectedDate}` : 'Select a date to view events'}
+            {selectedDate ? `Events on ${selectedDate}` : 'Pick a date to view events'}
           </Text>
 
           {filteredEvents.length === 0 ? (
@@ -154,6 +174,7 @@ export default function Home() {
         </View>
       </KeyboardAvoidingView>
 
+      {/* Create Event Modal */}
       <Modal
         visible={createModalVisible}
         animationType="slide"
@@ -186,6 +207,7 @@ export default function Home() {
         </TouchableWithoutFeedback>
       </Modal>
 
+      {/* Event Detail Modal */}
       <Modal
         visible={detailModalVisible}
         animationType="slide"
