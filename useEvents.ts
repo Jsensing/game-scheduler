@@ -19,13 +19,10 @@ export function useEvents() {
     const unsubscribe = onSnapshot(
       collection(db, COLLECTION_NAME),
       (snapshot) => {
-        const fetched = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...(data as { name: string; date: string }),
-          };
-        });
+        const fetched = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as { name: string; date: string }),
+        }));
         setEvents(fetched);
       },
       (error) => {
@@ -45,10 +42,7 @@ export function useEvents() {
     if (duplicate) return false;
 
     try {
-      await addDoc(collection(db, COLLECTION_NAME), {
-        name,
-        date,
-      });
+      await addDoc(collection(db, COLLECTION_NAME), { name, date });
       console.log('✅ Event added to Firebase');
       return true;
     } catch (error) {
@@ -68,9 +62,7 @@ export function useEvents() {
 
   const editEvent = async (id: string, newName: string) => {
     try {
-      await updateDoc(doc(db, COLLECTION_NAME, id), {
-        name: newName,
-      });
+      await updateDoc(doc(db, COLLECTION_NAME, id), { name: newName });
       console.log(`✏️ Event with ID ${id} updated`);
     } catch (error) {
       console.error('❌ Failed to update event:', error);
