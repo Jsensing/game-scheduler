@@ -42,15 +42,24 @@ export default function Home() {
     const checkForUpdate = async () => {
       try {
         const update = await Updates.checkForUpdateAsync();
-        console.log('🔄 Update available?', update.isAvailable);
-
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
-          console.log('✅ Update fetched. Reloading app...');
-          await Updates.reloadAsync();
+          Alert.alert(
+            'Update Available',
+            'Update installed, please restart the app to apply the update.',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  Updates.reloadAsync(); // reloads the app
+                },
+              },
+            ],
+            { cancelable: false }
+          );
         }
       } catch (e) {
-        console.log('🚨 Error checking for update:', e);
+        console.log('Error checking for updates:', e);
       }
     };
 
