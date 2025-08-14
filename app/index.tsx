@@ -116,11 +116,13 @@ export default function Home() {
       marked[selectedDate] = {
         customStyles: {
           container: {
-            backgroundColor: '#228B22',
+            borderWidth: 2,
+            borderColor: '#007BFF', // Bright blue
+            backgroundColor: 'white', // optional: match calendar background
             borderRadius: 0,
           },
           text: {
-            color: 'white',
+            color: '#007BFF',
             fontWeight: 'bold',
           },
         },
