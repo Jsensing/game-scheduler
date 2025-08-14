@@ -95,40 +95,61 @@ export default function Home() {
     ]);
   };
 
-  const markedDates = useMemo(() => {
-    const marked: Record<string, any> = {};
+const markedDates = useMemo(() => {
+  const marked: Record<string, any> = {};
 
-    events.forEach((e) => {
-      marked[e.date] = {
-        customStyles: {
-          container: {
-            backgroundColor: '#90ee90',
-            borderRadius: 0,
-          },
-          text: {
-            color: 'white',
-          },
+  // First: mark all dates with events
+  events.forEach((e) => {
+    marked[e.date] = {
+      customStyles: {
+        container: {
+          backgroundColor: '#90ee90',
+          borderRadius: 0,
+        },
+        text: {
+          color: 'white',
+        },
+      },
+    };
+  });
+
+  // Then: if selectedDate is also marked, update it with selection styles
+  if (selectedDate) {
+    if (marked[selectedDate]) {
+      // Date has an event → keep green, but bold text and blue border
+      marked[selectedDate].customStyles = {
+        container: {
+          ...marked[selectedDate].customStyles.container,
+          borderWidth: 2,
+          borderColor: '#007BFF',
+        },
+        text: {
+          ...marked[selectedDate].customStyles.text,
+          fontWeight: 'bold',
         },
       };
-    });
-
-    if (selectedDate) {
+    } else {
+      // Date has no event → apply blue border only
       marked[selectedDate] = {
         customStyles: {
           container: {
-            backgroundColor: '#228B22',
+            borderWidth: 2,
+            borderColor: '#007BFF',
+            backgroundColor: 'white',
             borderRadius: 0,
           },
           text: {
-            color: 'white',
+            color: '#007BFF',
             fontWeight: 'bold',
           },
         },
       };
     }
+  }
 
-    return marked;
-  }, [events, selectedDate]);
+  return marked;
+}, [events, selectedDate]);
+
 
   const filteredEvents = events.filter((e: Event) => e.date === selectedDate);
 
