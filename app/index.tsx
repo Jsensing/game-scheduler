@@ -100,53 +100,38 @@ export default function Home() {
     const marked: Record<string, any> = {};
 
     events.forEach((e) => {
-      let backgroundColor = '#90ee90'; // default green
-      if (e.name === 'Dnd') backgroundColor = '#FFD700'; // gold
-      if (e.name === 'Game Night') backgroundColor = '#1E90FF'; // blue
-      if (e.name === 'Canceled') backgroundColor = '#FF6347'; // red
+      const isSelected = e.date === selectedDate;
 
       marked[e.date] = {
         customStyles: {
           container: {
-            backgroundColor,
-            borderRadius: 0,
+            backgroundColor: '#90ee90', // light green for events
+            borderWidth: isSelected ? 2 : 0,
+            borderColor: isSelected ? 'blue' : 'transparent',
           },
           text: {
             color: 'white',
+            fontWeight: isSelected ? 'bold' : 'normal',
           },
         },
       };
     });
 
-    if (selectedDate) {
-      if (marked[selectedDate]) {
-        marked[selectedDate].customStyles = {
+    // If the selectedDate doesn't already have an event
+    if (selectedDate && !marked[selectedDate]) {
+      marked[selectedDate] = {
+        customStyles: {
           container: {
-            ...marked[selectedDate].customStyles.container,
+            backgroundColor: 'white',
             borderWidth: 2,
-            borderColor: '#007BFF',
+            borderColor: 'blue',
           },
           text: {
-            ...marked[selectedDate].customStyles.text,
+            color: 'black',
             fontWeight: 'bold',
           },
-        };
-      } else {
-        marked[selectedDate] = {
-          customStyles: {
-            container: {
-              borderWidth: 2,
-              borderColor: '#007BFF',
-              backgroundColor: 'white',
-              borderRadius: 0,
-            },
-            text: {
-              color: '#007BFF',
-              fontWeight: 'bold',
-            },
-          },
-        };
-      }
+        },
+      };
     }
 
     return marked;
