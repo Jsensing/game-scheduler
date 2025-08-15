@@ -52,7 +52,7 @@ export default function Home() {
               {
                 text: 'OK',
                 onPress: () => {
-                  Updates.reloadAsync(); // reloads the app
+                  Updates.reloadAsync();
                 },
               },
             ],
@@ -67,33 +67,17 @@ export default function Home() {
     checkForUpdate();
   }, []);
 
-  const handleSaveEvent = async () => {
-    const trimmedName = eventName.trim();
-    if (!trimmedName) {
-      Alert.alert('Event name required');
-      return;
+  const getColorForEventName = (name: string) => {
+    switch (name) {
+      case 'Dnd':
+        return '#90ee90'; // green
+      case 'Game Night':
+        return '#FFD700'; // yellow
+      case 'Canceled':
+        return '#FF6347'; // red
+      default:
+        return '#ccc'; // fallback
     }
-    const success = await addEvent(trimmedName, selectedDate);
-    if (!success) {
-      Alert.alert('Duplicate Event', 'An event with the same name already exists on this day.');
-      return;
-    }
-    setEventName('');
-    setCreateModalVisible(false);
-  };
-
-  const handleDeleteEvent = (id: string, name: string) => {
-    Alert.alert('Delete Event', `Are you sure you want to delete "${name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          deleteEvent(id);
-          setDetailModalVisible(false);
-        },
-      },
-    ]);
   };
 
   const markedDates = useMemo(() => {
@@ -101,11 +85,12 @@ export default function Home() {
 
     events.forEach((e) => {
       const isSelected = e.date === selectedDate;
+      const bgColor = getColorForEventName(e.name);
 
       marked[e.date] = {
         customStyles: {
           container: {
-            backgroundColor: '#90ee90', // light green for events
+            backgroundColor: bgColor,
             borderWidth: isSelected ? 2 : 0,
             borderColor: isSelected ? 'blue' : 'transparent',
           },
@@ -117,7 +102,6 @@ export default function Home() {
       };
     });
 
-    // If the selectedDate doesn't already have an event
     if (selectedDate && !marked[selectedDate]) {
       marked[selectedDate] = {
         customStyles: {
@@ -137,7 +121,38 @@ export default function Home() {
     return marked;
   }, [events, selectedDate]);
 
-  const filteredEvents = events.filter((e: Event) => e.date === selectedDate);
+  const handleSaveEvent = async () => {
+    const trimmed = eventName.trim();
+    if (!trimmed) {
+      Alert.alert('Event name required');
+      return;
+    }
+
+    const success = await addEvent(trimmed, selectedDate);
+    if (!success) {
+      Alert.alert('Duplicate Event', 'An event with the same name already exists on this day.');
+      return;
+    }
+
+    setEventName('');
+    setCreateModalVisible(false);
+  };
+
+  const handleDeleteEvent = (id: string, name: string) => {
+    Alert.alert('Delete Event', `Are you sure you want to delete "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deleteEvent(id);
+          setDetailModalVisible(false);
+        },
+      },
+    ]);
+  };
+
+  const filteredEvents = events.filter((e) => e.date === selectedDate);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -200,7 +215,6 @@ export default function Home() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.label}>Event Name:</Text>
               <Text style={styles.label}>Select Event Type:</Text>
               <View style={styles.pickerWrapper}>
                 <Picker
@@ -371,9 +385,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 12,
   },
   pickerWrapper: {
-  borderWidth: 1,
-  borderColor: '#ccc',
-  borderRadius: 6,
-  marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    marginBottom: 15,
   },
 });
