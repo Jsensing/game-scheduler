@@ -1,3 +1,4 @@
+import { Picker } from '@react-native-picker/picker';
 import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -51,7 +52,7 @@ export default function Home() {
               {
                 text: 'OK',
                 onPress: () => {
-                  Updates.reloadAsync(); // reloads the app
+                  Updates.reloadAsync();
                 },
               },
             ],
@@ -66,17 +67,73 @@ export default function Home() {
     checkForUpdate();
   }, []);
 
+  const getColorForEventName = (name: string) => {
+    switch (name) {
+      case 'Dnd':
+        return '#90ee90'; // green
+      case 'Game Night':
+        return '#FFD700'; // yellow
+      case 'Canceled':
+        return '#FF6347'; // red
+      default:
+        return '#ccc'; // fallback
+    }
+  };
+
+  const markedDates = useMemo(() => {
+    const marked: Record<string, any> = {};
+
+    events.forEach((e) => {
+      const isSelected = e.date === selectedDate;
+      const bgColor = getColorForEventName(e.name);
+
+      marked[e.date] = {
+        customStyles: {
+          container: {
+            backgroundColor: bgColor,
+            borderWidth: isSelected ? 2 : 0,
+            borderColor: isSelected ? 'blue' : 'transparent',
+          },
+          text: {
+            color: 'white',
+            fontWeight: isSelected ? 'bold' : 'normal',
+          },
+        },
+      };
+    });
+
+    if (selectedDate && !marked[selectedDate]) {
+      marked[selectedDate] = {
+        customStyles: {
+          container: {
+            backgroundColor: 'white',
+            borderWidth: 2,
+            borderColor: 'blue',
+          },
+          text: {
+            color: 'black',
+            fontWeight: 'bold',
+          },
+        },
+      };
+    }
+
+    return marked;
+  }, [events, selectedDate]);
+
   const handleSaveEvent = async () => {
-    const trimmedName = eventName.trim();
-    if (!trimmedName) {
+    const trimmed = eventName.trim();
+    if (!trimmed) {
       Alert.alert('Event name required');
       return;
     }
-    const success = await addEvent(trimmedName, selectedDate);
+
+    const success = await addEvent(trimmed, selectedDate);
     if (!success) {
       Alert.alert('Duplicate Event', 'An event with the same name already exists on this day.');
       return;
     }
+
     setEventName('');
     setCreateModalVisible(false);
   };
@@ -95,63 +152,7 @@ export default function Home() {
     ]);
   };
 
-const markedDates = useMemo(() => {
-  const marked: Record<string, any> = {};
-
-  // First: mark all dates with events
-  events.forEach((e) => {
-    marked[e.date] = {
-      customStyles: {
-        container: {
-          backgroundColor: '#90ee90',
-          borderRadius: 0,
-        },
-        text: {
-          color: 'white',
-        },
-      },
-    };
-  });
-
-  // Then: if selectedDate is also marked, update it with selection styles
-  if (selectedDate) {
-    if (marked[selectedDate]) {
-      // Date has an event → keep green, but bold text and blue border
-      marked[selectedDate].customStyles = {
-        container: {
-          ...marked[selectedDate].customStyles.container,
-          borderWidth: 2,
-          borderColor: '#007BFF',
-        },
-        text: {
-          ...marked[selectedDate].customStyles.text,
-          fontWeight: 'bold',
-        },
-      };
-    } else {
-      // Date has no event → apply blue border only
-      marked[selectedDate] = {
-        customStyles: {
-          container: {
-            borderWidth: 2,
-            borderColor: '#007BFF',
-            backgroundColor: 'white',
-            borderRadius: 0,
-          },
-          text: {
-            color: '#007BFF',
-            fontWeight: 'bold',
-          },
-        },
-      };
-    }
-  }
-
-  return marked;
-}, [events, selectedDate]);
-
-
-  const filteredEvents = events.filter((e: Event) => e.date === selectedDate);
+  const filteredEvents = events.filter((e) => e.date === selectedDate);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -214,13 +215,19 @@ const markedDates = useMemo(() => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.label}>Event Name:</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Meeting"
-                value={eventName}
-                onChangeText={setEventName}
-              />
+              <Text style={styles.label}>Select Event Type:</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={eventName}
+                  onValueChange={(itemValue) => setEventName(itemValue)}
+                >
+                  <Picker.Item label="Select an event..." value="" />
+                  <Picker.Item label="Dnd" value="Dnd" />
+                  <Picker.Item label="Game Night" value="Game Night" />
+                  <Picker.Item label="Canceled" value="Canceled" />
+                </Picker>
+              </View>
+
               <Button title="Save Event" onPress={handleSaveEvent} />
               <View style={{ marginTop: 10 }}>
                 <Button
@@ -376,5 +383,11 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    marginBottom: 15,
   },
 });
