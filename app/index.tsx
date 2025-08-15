@@ -1,3 +1,4 @@
+import { Picker } from '@react-native-picker/picker';
 import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -215,12 +216,19 @@ const markedDates = useMemo(() => {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.label}>Event Name:</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Meeting"
-                value={eventName}
-                onChangeText={setEventName}
-              />
+              <Text style={styles.label}>Select Event Type:</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={eventName}
+                  onValueChange={(itemValue) => setEventName(itemValue)}
+                >
+                  <Picker.Item label="Select an event..." value="" />
+                  <Picker.Item label="Dnd" value="Dnd" />
+                  <Picker.Item label="Game Night" value="Game Night" />
+                  <Picker.Item label="Canceled" value="Canceled" />
+                </Picker>
+              </View>
+
               <Button title="Save Event" onPress={handleSaveEvent} />
               <View style={{ marginTop: 10 }}>
                 <Button
@@ -376,5 +384,11 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
+  },
+  pickerWrapper: {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 6,
+  marginBottom: 15,
   },
 });
