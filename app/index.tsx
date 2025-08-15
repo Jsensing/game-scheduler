@@ -96,61 +96,61 @@ export default function Home() {
     ]);
   };
 
-const markedDates = useMemo(() => {
-  const marked: Record<string, any> = {};
+  const markedDates = useMemo(() => {
+    const marked: Record<string, any> = {};
 
-  // First: mark all dates with events
-  events.forEach((e) => {
-    marked[e.date] = {
-      customStyles: {
-        container: {
-          backgroundColor: '#90ee90',
-          borderRadius: 0,
-        },
-        text: {
-          color: 'white',
-        },
-      },
-    };
-  });
+    events.forEach((e) => {
+      let backgroundColor = '#90ee90'; // default green
+      if (e.name === 'Dnd') backgroundColor = '#FFD700'; // gold
+      if (e.name === 'Game Night') backgroundColor = '#1E90FF'; // blue
+      if (e.name === 'Canceled') backgroundColor = '#FF6347'; // red
 
-  // Then: if selectedDate is also marked, update it with selection styles
-  if (selectedDate) {
-    if (marked[selectedDate]) {
-      // Date has an event → keep green, but bold text and blue border
-      marked[selectedDate].customStyles = {
-        container: {
-          ...marked[selectedDate].customStyles.container,
-          borderWidth: 2,
-          borderColor: '#007BFF',
-        },
-        text: {
-          ...marked[selectedDate].customStyles.text,
-          fontWeight: 'bold',
-        },
-      };
-    } else {
-      // Date has no event → apply blue border only
-      marked[selectedDate] = {
+      marked[e.date] = {
         customStyles: {
           container: {
-            borderWidth: 2,
-            borderColor: '#007BFF',
-            backgroundColor: 'white',
+            backgroundColor,
             borderRadius: 0,
           },
           text: {
-            color: '#007BFF',
-            fontWeight: 'bold',
+            color: 'white',
           },
         },
       };
+    });
+
+    if (selectedDate) {
+      if (marked[selectedDate]) {
+        marked[selectedDate].customStyles = {
+          container: {
+            ...marked[selectedDate].customStyles.container,
+            borderWidth: 2,
+            borderColor: '#007BFF',
+          },
+          text: {
+            ...marked[selectedDate].customStyles.text,
+            fontWeight: 'bold',
+          },
+        };
+      } else {
+        marked[selectedDate] = {
+          customStyles: {
+            container: {
+              borderWidth: 2,
+              borderColor: '#007BFF',
+              backgroundColor: 'white',
+              borderRadius: 0,
+            },
+            text: {
+              color: '#007BFF',
+              fontWeight: 'bold',
+            },
+          },
+        };
+      }
     }
-  }
 
-  return marked;
-}, [events, selectedDate]);
-
+    return marked;
+  }, [events, selectedDate]);
 
   const filteredEvents = events.filter((e: Event) => e.date === selectedDate);
 
