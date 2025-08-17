@@ -1,4 +1,3 @@
-// index.tsx
 import { Picker } from '@react-native-picker/picker';
 import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -48,6 +47,9 @@ export default function Home() {
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+  const [currentDate, setCurrentDate] = useState(
+    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`
+  );
 
   const { events, addEvent, deleteEvent, editEvent } = useEvents();
 
@@ -60,12 +62,7 @@ export default function Home() {
           Alert.alert(
             'Update Available',
             'Update installed, please restart the app to apply the update.',
-            [
-              {
-                text: 'OK',
-                onPress: () => Updates.reloadAsync(),
-              },
-            ],
+            [{ text: 'OK', onPress: () => Updates.reloadAsync() }],
             { cancelable: false }
           );
         }
@@ -164,9 +161,10 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <View style={styles.calendarContainer}>
         <Calendar
+          key={currentDate} // forces re-render when date is updated
           markingType="custom"
           markedDates={markedDates}
-          current={`${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-01`}
+          current={currentDate}
           onDayPress={(day) => setSelectedDate(day.dateString)}
           renderHeader={() => (
             <TouchableOpacity onPress={() => setMonthPickerVisible(true)}>
@@ -247,28 +245,25 @@ export default function Home() {
                   ))}
                 </Picker>
               </View>
-              <Button title="Done" onPress={() => setMonthPickerVisible(false)} />
+              <Button
+                title="Done"
+                onPress={() => {
+                  const newDate = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-01`;
+                  setCurrentDate(newDate); // this triggers the calendar re-render
+                  setMonthPickerVisible(false);
+                }}
+              />
             </View>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-
-      {/* Other Modals remain unchanged (Create Event and Detail Modals) */}
-      {/* ... */}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  calendarContainer: {
-    flex: 1,
-    paddingTop: 50,
-    paddingHorizontal: 10,
-  },
+  container: { flex: 1, backgroundColor: 'white' },
+  calendarContainer: { flex: 1, paddingTop: 50, paddingHorizontal: 10 },
   calendarHeader: {
     textAlign: 'center',
     fontSize: 20,
@@ -276,30 +271,12 @@ const styles = StyleSheet.create({
     padding: 10,
     color: '#333',
   },
-  footer: {
-    backgroundColor: '#fff',
-  },
-  footerInner: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    marginBottom: 30,
-  },
-  eventList: {
-    marginTop: 20,
-  },
-  label: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  noEvents: {
-    fontStyle: 'italic',
-    color: '#888',
-  },
-  eventItem: {
-    fontSize: 15,
-    marginBottom: 8,
-  },
+  footer: { backgroundColor: '#fff' },
+  footerInner: { paddingHorizontal: 20, paddingTop: 10, marginBottom: 30 },
+  eventList: { marginTop: 20 },
+  label: { fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
+  noEvents: { fontStyle: 'italic', color: '#888' },
+  eventItem: { fontSize: 15, marginBottom: 8 },
   input: {
     borderColor: '#ccc',
     borderWidth: 1,
