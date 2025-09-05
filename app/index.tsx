@@ -13,9 +13,10 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,11 +40,11 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const [selectedDate, setSelectedDate] = useState('');
   const [eventName, setEventName] = useState('');
+  const [editedName, setEditedName] = useState('');
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState('');
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
@@ -124,20 +125,15 @@ export default function Home() {
     return marked;
   }, [events, selectedDate]);
 
-  const handleSaveEvent = async () => {
-    const trimmed = eventName.trim();
-    if (!trimmed) {
-      Alert.alert('Event name required');
-      return;
-    }
-
-    const success = await addEvent(trimmed, selectedDate);
+  const handleSaveEventWrapper = async (finalName: string) => {
+    const success = await addEvent(finalName, selectedDate);
     if (!success) {
       Alert.alert('Duplicate Event', 'An event with the same name already exists on this day.');
       return;
     }
 
     setEventName('');
+    setEditedName('');
     setCreateModalVisible(false);
   };
 
@@ -161,7 +157,7 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <View style={styles.calendarContainer}>
         <Calendar
-          key={currentDate} // forces re-render when date is updated
+          key={currentDate}
           markingType="custom"
           markedDates={markedDates}
           current={currentDate}
@@ -219,6 +215,62 @@ export default function Home() {
         </View>
       </KeyboardAvoidingView>
 
+      {/* Create Event Modal */}
+      <Modal visible={createModalVisible} transparent animationType="slide">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.label}>Select Event Type</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={eventName}
+                  onValueChange={(value) => setEventName(value)}
+                >
+                  <Picker.Item label="Select an event..." value="" color="#888" />
+                  <Picker.Item label="DnD" value="Dnd" />
+                  <Picker.Item label="Game Night" value="Game Night" />
+                  <Picker.Item label="Canceled" value="Canceled" />
+                  <Picker.Item label="Custom" value="Custom" />
+                </Picker>
+              </View>
+
+              {eventName === 'Custom' && (
+                <>
+                  <Text style={styles.label}>Enter Custom Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter event name"
+                    value={editedName}
+                    onChangeText={setEditedName}
+                  />
+                </>
+              )}
+
+              <Button
+                title="Save"
+                onPress={() => {
+                  const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
+                  if (!finalName) {
+                    Alert.alert('Event name required');
+                    return;
+                  }
+                  handleSaveEventWrapper(finalName);
+                }}
+              />
+              <Button
+                title="Cancel"
+                onPress={() => {
+                  setEventName('');
+                  setEditedName('');
+                  setCreateModalVisible(false);
+                }}
+                color="gray"
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
       {/* Month-Year Picker Modal */}
       <Modal visible={monthPickerVisible} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -249,7 +301,7 @@ export default function Home() {
                 title="Done"
                 onPress={() => {
                   const newDate = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-01`;
-                  setCurrentDate(newDate); // this triggers the calendar re-render
+                  setCurrentDate(newDate);
                   setMonthPickerVisible(false);
                 }}
               />

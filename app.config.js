@@ -25,6 +25,7 @@ export default {
       eas: {
         projectId: '43e81f0e-201e-45a3-9165-72186c708d62'
       }
-    }
+    },
+    plugins: ['expo-router'] // ✅ REQUIRED for expo-router to function correctly
   }
 };
