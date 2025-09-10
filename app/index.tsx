@@ -304,39 +304,49 @@ export default function Home() {
           </>
         )}
 
-        <Button
-          title="Save Changes"
-          onPress={() => {
-            const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
-            if (!finalName || !selectedEvent) {
-              Alert.alert('Event name required');
-              return;
-            }
-            editEvent(selectedEvent.id, finalName);
-            setDetailModalVisible(false);
-            setSelectedEvent(null);
-            setEventName('');
-            setEditedName('');
-          }}
-        />
+        {/* Spaced Buttons */}
+        <View style={{ marginTop: 20 }}>
+          <View style={{ marginBottom: 10 }}>
+            <Button
+              title="Save Changes"
+              onPress={() => {
+                const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
+                if (!finalName || !selectedEvent) {
+                  Alert.alert('Event name required');
+                  return;
+                }
+                editEvent(selectedEvent.id, finalName);
+                setDetailModalVisible(false);
+                setSelectedEvent(null);
+                setEventName('');
+                setEditedName('');
+              }}
+            />
+          </View>
 
-        <Button
-          title="Delete"
-          color="red"
-          onPress={() => {
-            if (selectedEvent) handleDeleteEvent(selectedEvent.id, selectedEvent.name);
-          }}
-        />
+          <View style={{ marginBottom: 10 }}>
+            <Button
+              title="Delete"
+              color="red"
+              onPress={() => {
+                if (selectedEvent) handleDeleteEvent(selectedEvent.id, selectedEvent.name);
+              }}
+            />
+          </View>
 
-        <Button
-          title="Cancel"
-          onPress={() => {
-            setDetailModalVisible(false);
-            setSelectedEvent(null);
-            setEventName('');
-            setEditedName('');
-          }}
-        />
+          <View>
+            <Button
+              title="Cancel"
+              onPress={() => {
+                setDetailModalVisible(false);
+                setSelectedEvent(null);
+                setEventName('');
+                setEditedName('');
+              }}
+              color="gray"
+            />
+          </View>
+        </View>
       </View>
     </View>
   </TouchableWithoutFeedback>
