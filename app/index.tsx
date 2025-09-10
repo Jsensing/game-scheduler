@@ -271,6 +271,76 @@ export default function Home() {
         </TouchableWithoutFeedback>
       </Modal>
 
+      {/* Detail/Edit Event Modal */}
+<Modal visible={detailModalVisible} transparent animationType="slide">
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <Text style={styles.label}>Edit Event</Text>
+
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={eventName}
+            onValueChange={(value) => setEventName(value)}
+          >
+            <Picker.Item label="DnD" value="Dnd" />
+            <Picker.Item label="Game Night" value="Game Night" />
+            <Picker.Item label="Canceled" value="Canceled" />
+            <Picker.Item label="Custom" value="Custom" />
+          </Picker>
+        </View>
+
+        {eventName === 'Custom' && (
+          <>
+            <Text style={styles.label}>Custom Event Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter custom name"
+              value={editedName}
+              onChangeText={setEditedName}
+            />
+          </>
+        )}
+
+        <Button
+          title="Save Changes"
+          onPress={() => {
+            const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
+            if (!finalName || !selectedEvent) {
+              Alert.alert('Event name required');
+              return;
+            }
+            editEvent(selectedEvent.id, finalName);
+            setDetailModalVisible(false);
+            setSelectedEvent(null);
+            setEventName('');
+            setEditedName('');
+          }}
+        />
+
+        <Button
+          title="Delete"
+          color="red"
+          onPress={() => {
+            if (selectedEvent) handleDeleteEvent(selectedEvent.id, selectedEvent.name);
+          }}
+        />
+
+        <Button
+          title="Cancel"
+          onPress={() => {
+            setDetailModalVisible(false);
+            setSelectedEvent(null);
+            setEventName('');
+            setEditedName('');
+          }}
+        />
+      </View>
+    </View>
+  </TouchableWithoutFeedback>
+</Modal>
+
+
       {/* Month-Year Picker Modal */}
       <Modal visible={monthPickerVisible} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
