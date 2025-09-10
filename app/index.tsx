@@ -191,6 +191,8 @@ export default function Home() {
                   onPress={() => {
                     setSelectedEvent(item);
                     setDetailModalVisible(true);
+                    setEventName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? item.name : 'Custom');
+                    setEditedName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? '' : item.name);
                   }}
                 >
                   <Text style={styles.eventItem}>• {item.name}</Text>
