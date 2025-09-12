@@ -153,6 +153,19 @@ export default function Home() {
 
   const filteredEvents = events.filter((e) => e.date === selectedDate);
 
+    useEffect(() => {
+    if (detailModalVisible && selectedEvent) {
+      const name = selectedEvent.name;
+      if (['Dnd', 'Game Night', 'Canceled'].includes(name)) {
+        setEventName(name);
+        setEditedName('');
+      } else {
+        setEventName('Custom');
+        setEditedName(name);
+      }
+    }
+  }, [detailModalVisible, selectedEvent]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.calendarContainer}>
