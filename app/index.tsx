@@ -241,11 +241,11 @@ export default function Home() {
                   selectedValue={eventName}
                   onValueChange={(value) => setEventName(value)}
                 >
-                  <Picker.Item label="Select an event..." value="" color="#888" />
-                  <Picker.Item label="DnD" value="Dnd" color="#888" />
-                  <Picker.Item label="Game Night" value="Game Night" color="#888" />
-                  <Picker.Item label="Canceled" value="Canceled" color="#888" />
-                  <Picker.Item label="Custom" value="Custom" color="#888" />
+                  <Picker.Item label="Select an event..." value="" color="#000" />
+                  <Picker.Item label="DnD" value="Dnd" color="#000" />
+                  <Picker.Item label="Game Night" value="Game Night" color="#000" />
+                  <Picker.Item label="Canceled" value="Canceled" color="#000" />
+                  <Picker.Item label="Custom" value="Custom" color="#000" />
                 </Picker>
               </View>
 
@@ -298,10 +298,10 @@ export default function Home() {
                   selectedValue={eventName}
                   onValueChange={(value) => setEventName(value)}
                 >
-                  <Picker.Item label="DnD" value="Dnd" color="#888" />
-                  <Picker.Item label="Game Night" value="Game Night" color="#888" />
-                  <Picker.Item label="Canceled" value="Canceled" color="#888" />
-                  <Picker.Item label="Custom" value="Custom" color="#888" />
+                  <Picker.Item label="DnD" value="Dnd" color="#000" />
+                  <Picker.Item label="Game Night" value="Game Night" color="#000" />
+                  <Picker.Item label="Canceled" value="Canceled" color="#000" />
+                  <Picker.Item label="Custom" value="Custom" color="#000" />
                 </Picker>
               </View>
 
