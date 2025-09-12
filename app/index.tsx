@@ -242,10 +242,10 @@ export default function Home() {
                   onValueChange={(value) => setEventName(value)}
                 >
                   <Picker.Item label="Select an event..." value="" color="#888" />
-                  <Picker.Item label="DnD" value="Dnd" />
-                  <Picker.Item label="Game Night" value="Game Night" />
-                  <Picker.Item label="Canceled" value="Canceled" />
-                  <Picker.Item label="Custom" value="Custom" />
+                  <Picker.Item label="DnD" value="Dnd" color="#888" />
+                  <Picker.Item label="Game Night" value="Game Night" color="#888" />
+                  <Picker.Item label="Canceled" value="Canceled" color="#888" />
+                  <Picker.Item label="Custom" value="Custom" color="#888" />
                 </Picker>
               </View>
 
@@ -287,84 +287,83 @@ export default function Home() {
       </Modal>
 
       {/* Detail/Edit Event Modal */}
-<Modal visible={detailModalVisible} transparent animationType="slide">
-  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <Text style={styles.label}>Edit Event</Text>
+      <Modal visible={detailModalVisible} transparent animationType="slide">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.label}>Edit Event</Text>
 
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={eventName}
-            onValueChange={(value) => setEventName(value)}
-          >
-            <Picker.Item label="DnD" value="Dnd" />
-            <Picker.Item label="Game Night" value="Game Night" />
-            <Picker.Item label="Canceled" value="Canceled" />
-            <Picker.Item label="Custom" value="Custom" />
-          </Picker>
-        </View>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={eventName}
+                  onValueChange={(value) => setEventName(value)}
+                >
+                  <Picker.Item label="DnD" value="Dnd" color="#888" />
+                  <Picker.Item label="Game Night" value="Game Night" color="#888" />
+                  <Picker.Item label="Canceled" value="Canceled" color="#888" />
+                  <Picker.Item label="Custom" value="Custom" color="#888" />
+                </Picker>
+              </View>
 
-        {eventName === 'Custom' && (
-          <>
-            <Text style={styles.label}>Custom Event Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter custom name"
-              value={editedName}
-              onChangeText={setEditedName}
-            />
-          </>
-        )}
+              {eventName === 'Custom' && (
+                <>
+                  <Text style={styles.label}>Custom Event Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter custom name"
+                    value={editedName}
+                    onChangeText={setEditedName}
+                  />
+                </>
+              )}
 
-        {/* Spaced Buttons */}
-        <View style={{ marginTop: 20 }}>
-          <View style={{ marginBottom: 10 }}>
-            <Button
-              title="Save Changes"
-              onPress={() => {
-                const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
-                if (!finalName || !selectedEvent) {
-                  Alert.alert('Event name required');
-                  return;
-                }
-                editEvent(selectedEvent.id, finalName);
-                setDetailModalVisible(false);
-                setSelectedEvent(null);
-                setEventName('');
-                setEditedName('');
-              }}
-            />
+              {/* Spaced Buttons */}
+              <View style={{ marginTop: 20 }}>
+                <View style={{ marginBottom: 10 }}>
+                  <Button
+                    title="Save Changes"
+                    onPress={() => {
+                      const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
+                      if (!finalName || !selectedEvent) {
+                        Alert.alert('Event name required');
+                        return;
+                      }
+                      editEvent(selectedEvent.id, finalName);
+                      setDetailModalVisible(false);
+                      setSelectedEvent(null);
+                      setEventName('');
+                      setEditedName('');
+                    }}
+                  />
+                </View>
+
+                <View style={{ marginBottom: 10 }}>
+                  <Button
+                    title="Delete"
+                    color="red"
+                    onPress={() => {
+                      if (selectedEvent) handleDeleteEvent(selectedEvent.id, selectedEvent.name);
+                    }}
+                  />
+                </View>
+
+                <View>
+                  <Button
+                    title="Cancel"
+                    onPress={() => {
+                      setDetailModalVisible(false);
+                      setSelectedEvent(null);
+                      setEventName('');
+                      setEditedName('');
+                    }}
+                    color="gray"
+                  />
+                </View>
+              </View>
+            </View>
           </View>
-
-          <View style={{ marginBottom: 10 }}>
-            <Button
-              title="Delete"
-              color="red"
-              onPress={() => {
-                if (selectedEvent) handleDeleteEvent(selectedEvent.id, selectedEvent.name);
-              }}
-            />
-          </View>
-
-          <View>
-            <Button
-              title="Cancel"
-              onPress={() => {
-                setDetailModalVisible(false);
-                setSelectedEvent(null);
-                setEventName('');
-                setEditedName('');
-              }}
-              color="gray"
-            />
-          </View>
-        </View>
-      </View>
-    </View>
-  </TouchableWithoutFeedback>
-</Modal>
-
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {/* Month-Year Picker Modal */}
       <Modal visible={monthPickerVisible} transparent animationType="slide">
