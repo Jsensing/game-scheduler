@@ -32,7 +32,7 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
       const snapshot = await getDocs(q);
 
       if (!snapshot.empty) {
-        onLogin(); // ✅ Success → move to calendar
+        onLogin(); // Success → move to calendar
       } else {
         Alert.alert('Login Failed', 'Invalid username or password');
       }
