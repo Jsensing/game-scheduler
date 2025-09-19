@@ -9,13 +9,14 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { db } from '../firebase'; // ✅ use db from firebase.js
+import { db } from '../firebase'; // use db from firebase.js
 
 interface LoginProps {
   onLogin: () => void;
+  onSwitchToSignUp: () => void; 
 }
 
-export default function Login({ onLogin }: LoginProps) {
+export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -63,6 +64,15 @@ export default function Login({ onLogin }: LoginProps) {
 
       <View style={{ marginTop: 20 }}>
         <Button title="Login" onPress={handleLogin} />
+      </View>
+
+      {/* New Sign Up button */}
+      <View style={{ marginTop: 10 }}>
+        <Button
+          title="Sign Up"
+          onPress={onSwitchToSignUp}
+          color="gray"
+        />
       </View>
     </SafeAreaView>
   );
