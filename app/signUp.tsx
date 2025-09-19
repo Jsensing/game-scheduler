@@ -1,4 +1,5 @@
-import { addDoc, collection } from 'firebase/firestore';
+import bcrypt from 'bcryptjs';
+import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import { db } from '../firebase';
@@ -19,10 +20,22 @@ export default function SignUp({ onSignUpSuccess, onBackToLogin }: SignUpProps) 
     }
 
     try {
-      // Add new user to Firestore `users` collection
-      await addDoc(collection(db, 'users'), {
+      // Check if username already exists
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        Alert.alert('Error', 'Username already taken');
+        return;
+      }
+
+      // Hash password before saving
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await addDoc(usersRef, {
         username,
-        password, // ⚠️ Normally hash this, but leaving plain for demo
+        password: hashedPassword,
       });
 
       Alert.alert('Success', 'Account created!');
