@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -8,6 +8,14 @@ interface SignUpProps {
   onSignUpSuccess: () => void;
   onBackToLogin: () => void;
 }
+
+bcrypt.setRandomFallback((len: number) => {
+  const randoms: number[] = [];
+  for (let i = 0; i < len; i++) {
+    randoms.push(Math.floor(Math.random() * 256));
+  }
+  return randoms;
+});
 
 export default function SignUp({ onSignUpSuccess, onBackToLogin }: SignUpProps) {
   const [username, setUsername] = useState('');
@@ -30,13 +38,14 @@ export default function SignUp({ onSignUpSuccess, onBackToLogin }: SignUpProps) 
         return;
       }
 
-      // Hash password before saving
-      const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password before saving
+        const hashedPassword = bcrypt.hashSync(password, 10);
 
-      await addDoc(usersRef, {
-        username,
+        await addDoc(usersRef, {
+        username: String(username),
         password: hashedPassword,
-      });
+        });
+
 
       Alert.alert('Success', 'Account created!');
       onSignUpSuccess();
