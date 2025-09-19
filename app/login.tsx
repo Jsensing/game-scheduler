@@ -1,3 +1,4 @@
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -8,6 +9,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import { db } from '../firebase'; // ✅ use db from firebase.js
 
 interface LoginProps {
   onLogin: () => void;
@@ -17,11 +19,25 @@ export default function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    if (username === 'test' && password === '1234') {
-      onLogin();
-    } else {
-      Alert.alert('Login Failed', 'Invalid username or password');
+  const handleLogin = async () => {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(
+        usersRef,
+        where('username', '==', username),
+        where('password', '==', password)
+      );
+
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        onLogin(); // ✅ Success → move to calendar
+      } else {
+        Alert.alert('Login Failed', 'Invalid username or password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Something went wrong while logging in.');
     }
   };
 
@@ -33,6 +49,7 @@ export default function Login({ onLogin }: LoginProps) {
         style={styles.input}
         placeholder="Username"
         value={username}
+        autoCapitalize="none"
         onChangeText={setUsername}
       />
 
