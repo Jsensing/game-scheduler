@@ -261,26 +261,34 @@ export default function Home() {
                 </>
               )}
 
-              <Button
-                title="Save"
-                onPress={() => {
-                  const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
-                  if (!finalName) {
-                    Alert.alert('Event name required');
-                    return;
-                  }
-                  handleSaveEventWrapper(finalName);
-                }}
-              />
-              <Button
-                title="Cancel"
-                onPress={() => {
-                  setEventName('');
-                  setEditedName('');
-                  setCreateModalVisible(false);
-                }}
-                color="gray"
-              />
+              <View style={{ marginTop: 20 }}>
+                <View style={{ marginBottom: 10 }}>
+                  <Button
+                    title="Save"
+                    onPress={() => {
+                      const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
+                      if (!finalName) {
+                        Alert.alert('Event name required');
+                        return;
+                      }
+                      handleSaveEventWrapper(finalName);
+                    }}
+                  />
+                </View>
+
+                <View>
+                  <Button
+                    title="Cancel"
+                    onPress={() => {
+                      setEventName('');
+                      setEditedName('');
+                      setCreateModalVisible(false);
+                    }}
+                    color="gray"
+                  />
+                </View>
+              </View>
+
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -317,7 +325,7 @@ export default function Home() {
                 </>
               )}
 
-              {/* Spaced Buttons */}
+              {/* Spaced Buttons - edit event*/}
               <View style={{ marginTop: 20 }}>
                 <View style={{ marginBottom: 10 }}>
                   <Button
