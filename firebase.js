@@ -25,5 +25,5 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 console.log(`✅ Firebase initialized (${USE_DEV_COLLECTION ? 'events_dev' : 'events'})`);
 
 const db = getFirestore(app);
-export { db };
+export { app, db };
 
