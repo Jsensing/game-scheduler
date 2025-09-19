@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
@@ -9,11 +10,11 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { db } from '../firebase'; // use db from firebase.js
+import { db } from '../firebase';
 
 interface LoginProps {
   onLogin: () => void;
-  onSwitchToSignUp: () => void; 
+  onSwitchToSignUp: () => void;
 }
 
 export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
@@ -23,19 +24,22 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
   const handleLogin = async () => {
     try {
       const usersRef = collection(db, 'users');
-      const q = query(
-        usersRef,
-        where('username', '==', username),
-        where('password', '==', password)
-      );
-
+      const q = query(usersRef, where('username', '==', username));
       const snapshot = await getDocs(q);
 
       if (!snapshot.empty) {
-        onLogin(); // Success → move to calendar
-      } else {
-        Alert.alert('Login Failed', 'Invalid username or password');
+        const userData = snapshot.docs[0].data();
+
+        // Compare entered password with hashed password
+        const isMatch = bcrypt.compareSync(password, userData.password);
+
+        if (isMatch) {
+          onLogin(); // ✅ Success → move to calendar
+          return;
+        }
       }
+
+      Alert.alert('Login Failed', 'Invalid username or password');
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Error', 'Something went wrong while logging in.');
@@ -66,13 +70,8 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
         <Button title="Login" onPress={handleLogin} />
       </View>
 
-      {/* New Sign Up button */}
       <View style={{ marginTop: 10 }}>
-        <Button
-          title="Sign Up"
-          onPress={onSwitchToSignUp}
-          color="gray"
-        />
+        <Button title="Sign Up" onPress={onSwitchToSignUp} color="gray" />
       </View>
     </SafeAreaView>
   );
