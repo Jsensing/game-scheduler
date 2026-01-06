@@ -2,65 +2,95 @@ import { Picker } from '@react-native-picker/picker';
 import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
-    Button,
-    FlatList,
-    Keyboard,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Button,
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEvents } from '../useEvents';
 
+// Type definition for event objects
 interface Event {
   id: string;
   name: string;
   date: string;
 }
 
+// Array of month names for display purposes
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+// Generate array of years: 10 years before and after current year
 const currentYear = new Date().getFullYear();
 const yearOptions = Array.from({ length: 21 }, (_, i) => `${currentYear - 10 + i}`);
 
 export default function Home() {
+   // Get safe area insets for proper spacing on devices with notches
   const insets = useSafeAreaInsets();
+  
+  // State for calendar date selection
   const [selectedDate, setSelectedDate] = useState('');
+  
+  // State for event name input in create modal
   const [eventName, setEventName] = useState('');
+  
+  // State for custom event name when "Custom" is selected
   const [editedName, setEditedName] = useState('');
+  
+  // State to control visibility of create event modal
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  
+  // State to control visibility of event detail/edit modal
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  
+  // State to hold the currently selected event for viewing/editing
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  
+  // State to track if user is editing an event (unused, can be removed)
   const [isEditing, setIsEditing] = useState(false);
+  
+  // State to track currently displayed month in calendar
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+  
+  // State to track currently displayed year in calendar
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  
+  // State to control visibility of month/year picker modal
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+  
+  // State to control which month the calendar displays (formatted as YYYY-MM-01)
   const [currentDate, setCurrentDate] = useState(
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`
   );
 
+  // Custom hook to manage events (CRUD operations)
   const { events, addEvent, deleteEvent, editEvent } = useEvents();
 
-  // OTA updates
+  // Check for over-the-air (OTA) updates on component mount
   useEffect(() => {
     const checkForUpdate = async () => {
       try {
+        // Check if an update is available
         const update = await Updates.checkForUpdateAsync();
         if (update.isAvailable) {
+          // Download the update
           await Updates.fetchUpdateAsync();
+          // Prompt user to restart app to apply update
           Alert.alert(
             'Update Available',
             'Update installed, please restart the app to apply the update.',
@@ -75,20 +105,22 @@ export default function Home() {
     checkForUpdate();
   }, []);
 
-  // Color mapping
+  // Function to determine background color based on event name
   const getColorForEventName = (name: string) => {
     switch (name) {
-      case 'Dnd': return '#90ee90';
-      case 'Game Night': return '#FFD700';
-      case 'Canceled': return '#FF6347';
-      default: return '#ccc';
+      case 'Dnd': return '#90ee90';          // Light green
+      case 'Game Night': return '#FFD700';   // Gold
+      case 'Canceled': return '#FF6347';     // Tomato red
+      default: return '#ccc';                // Gray for custom events
     }
   };
 
-  // Marked Dates
+  // Memoized object containing styling for marked dates on calendar
+  // Recalculates when events or selectedDate changes
   const markedDates = useMemo(() => {
     const marked: Record<string, any> = {};
 
+    // Mark each date that has an event
     events.forEach((e) => {
       const isSelected = e.date === selectedDate;
       const bgColor = getColorForEventName(e.name);
@@ -108,6 +140,7 @@ export default function Home() {
       };
     });
 
+    // If a date is selected but has no events, mark it with a blue border
     if (selectedDate && !marked[selectedDate]) {
       marked[selectedDate] = {
         customStyles: {
@@ -127,19 +160,24 @@ export default function Home() {
     return marked;
   }, [events, selectedDate]);
 
-  // Add event wrapper
+  // Wrapper function to handle event creation
   const handleSaveEventWrapper = async (finalName: string) => {
+    // Attempt to add the event
     const success = await addEvent(finalName, selectedDate);
+    
+    // If event already exists on this date, show alert
     if (!success) {
       Alert.alert('Duplicate Event', 'An event with the same name already exists on this day.');
       return;
     }
+    
+    // Reset form and close modal on success
     setEventName('');
     setEditedName('');
     setCreateModalVisible(false);
   };
 
-  // Delete event
+  // Function to handle event deletion with confirmation
   const handleDeleteEvent = (id: string, name: string) => {
     Alert.alert('Delete Event', `Are you sure you want to delete "${name}"?`, [
       { text: 'Cancel', style: 'cancel' },
@@ -154,17 +192,20 @@ export default function Home() {
     ]);
   };
 
-  // Events for selected date
+  // Filter events to show only those on the selected date
   const filteredEvents = events.filter((e) => e.date === selectedDate);
 
-  // Pre-fill edit modal
+  // Pre-fill the edit modal when it opens
+  // Sets the picker to the correct value and custom name if applicable
   useEffect(() => {
     if (detailModalVisible && selectedEvent) {
       const name = selectedEvent.name;
+      // If it's a predefined event type, set picker value
       if (['Dnd', 'Game Night', 'Canceled'].includes(name)) {
         setEventName(name);
         setEditedName('');
       } else {
+        // If it's a custom event, set picker to "Custom" and populate custom name
         setEventName('Custom');
         setEditedName(name);
       }
@@ -173,13 +214,16 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Main calendar and event list container */}
       <View style={styles.calendarContainer}>
+        {/* Calendar component with custom styling and event markers */}
         <Calendar
           key={currentDate}
           markingType="custom"
           markedDates={markedDates}
           current={currentDate}
           onDayPress={(day) => setSelectedDate(day.dateString)}
+          // Custom header showing month and year (tappable to open picker)
           renderHeader={() => (
             <TouchableOpacity onPress={() => setMonthPickerVisible(true)}>
               <Text style={styles.calendarHeader}>
@@ -187,12 +231,14 @@ export default function Home() {
               </Text>
             </TouchableOpacity>
           )}
+          // Update state when user swipes to different month
           onMonthChange={(month) => {
             setCalendarMonth(month.month - 1);
             setCalendarYear(month.year);
           }}
         />
 
+        {/* Event list section showing events for selected date */}
         <View style={styles.eventList}>
           <Text style={styles.label}>
             {selectedDate ? `Events on ${selectedDate}` : 'Pick a date to view events'}
@@ -207,6 +253,7 @@ export default function Home() {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() => {
+                    // Set up state for editing the selected event
                     setSelectedEvent(item);
                     setDetailModalVisible(true);
                     setEventName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? item.name : 'Custom');
@@ -221,6 +268,7 @@ export default function Home() {
         </View>
       </View>
 
+      {/* Fixed footer with Create Event button */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={20}
@@ -235,12 +283,14 @@ export default function Home() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Create Event Modal */}
+      {/* Modal for creating a new event */}
       <Modal visible={createModalVisible} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.label}>Select Event Type</Text>
+              
+              {/* Picker for selecting event type */}
               <View style={styles.pickerWrapper}>
                 <Picker
                   selectedValue={eventName}
@@ -254,6 +304,7 @@ export default function Home() {
                 </Picker>
               </View>
 
+              {/* Show custom name input only when "Custom" is selected */}
               {eventName === 'Custom' && (
                 <>
                   <Text style={styles.label}>Enter Custom Name</Text>
@@ -266,11 +317,13 @@ export default function Home() {
                 </>
               )}
 
+              {/* Action buttons */}
               <View style={{ marginTop: 20 }}>
                 <View style={{ marginBottom: 10 }}>
                   <Button
                     title="Save"
                     onPress={() => {
+                      // Get final name based on whether custom or predefined
                       const finalName = eventName === 'Custom' ? editedName.trim() : eventName.trim();
                       if (!finalName) {
                         Alert.alert('Event name required');
@@ -298,13 +351,14 @@ export default function Home() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Detail/Edit Event Modal */}
+      {/* Modal for viewing/editing existing event */}
       <Modal visible={detailModalVisible} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.label}>Edit Event</Text>
 
+              {/* Picker for changing event type */}
               <View style={styles.pickerWrapper}>
                 <Picker
                   selectedValue={eventName}
@@ -317,6 +371,7 @@ export default function Home() {
                 </Picker>
               </View>
 
+              {/* Show custom name input when editing custom event */}
               {eventName === 'Custom' && (
                 <>
                   <Text style={styles.label}>Custom Event Name</Text>
@@ -329,7 +384,7 @@ export default function Home() {
                 </>
               )}
 
-              {/* Spaced Buttons */}
+              {/* Action buttons with proper spacing */}
               <View style={{ marginTop: 20 }}>
                 <View style={{ marginBottom: 10 }}>
                   <Button
@@ -340,6 +395,7 @@ export default function Home() {
                         Alert.alert('Event name required');
                         return;
                       }
+                      // Update the event and close modal
                       editEvent(selectedEvent.id, finalName);
                       setDetailModalVisible(false);
                       setSelectedEvent(null);
@@ -377,12 +433,14 @@ export default function Home() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Month-Year Picker Modal */}
+      {/* Modal for selecting month and year to navigate calendar */}
       <Modal visible={monthPickerVisible} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.label}>Select Month and Year</Text>
+              
+              {/* Month picker */}
               <View style={styles.pickerWrapper}>
                 <Picker
                   selectedValue={calendarMonth}
@@ -393,6 +451,8 @@ export default function Home() {
                   ))}
                 </Picker>
               </View>
+              
+              {/* Year picker */}
               <View style={styles.pickerWrapper}>
                 <Picker
                   selectedValue={calendarYear}
@@ -403,9 +463,11 @@ export default function Home() {
                   ))}
                 </Picker>
               </View>
+              
               <Button
                 title="Done"
                 onPress={() => {
+                  // Format new date and update calendar view
                   const newDate = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-01`;
                   setCurrentDate(newDate);
                   setMonthPickerVisible(false);
@@ -419,6 +481,7 @@ export default function Home() {
   );
 }
 
+// Stylesheet definitions
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
   calendarContainer: { flex: 1, paddingTop: 50, paddingHorizontal: 10 },
