@@ -21,6 +21,9 @@ export default {
     
     // App version number (increment for each release)
     version: '1.0.0',
+
+    //app icon
+    icon: './assets/images/appIcon.png',
     
     // Lock app to portrait orientation only
     orientation: 'portrait',
