@@ -18,6 +18,10 @@ interface Event {
   name: string;                                  // Event name/title
   date: string;                                  // Date in YYYY-MM-DD format
   type: 'Dnd' | 'Game Night' | 'Canceled';      // Event category/type
+  rsvps: {
+    username: string;
+    status: 'Yes' | 'No' |'Maybe';
+  }[];
 }
 
 /**
