@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { db } from '../firebase';
+import { useUser } from './userContext';
 
 // Props interface for the Login component
 interface LoginProps {
@@ -23,6 +24,9 @@ interface LoginProps {
  * Validates credentials against Firebase Firestore and uses bcrypt for password verification
  */
 export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
+  
+  const {setCurrentUser} = useUser();
+  
   // State for username input field
   const [username, setUsername] = useState('');
   
@@ -58,6 +62,10 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
 
         // If password matches, trigger successful login
         if (isMatch) {
+          setCurrentUser({
+            id: snapshot.docs[0].id,
+            username: userData.username
+          });
           onLogin(); // ✅ Success → move to calendar
           return;
         }
