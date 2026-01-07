@@ -12,15 +12,16 @@ import { db } from './firebase';
 
 /**
  * Event interface defining the structure of calendar events
+ * Now includes RSVP tracking
  */
 interface Event {
   id: string;                                    // Firestore document ID
   name: string;                                  // Event name/title
   date: string;                                  // Date in YYYY-MM-DD format
   type: 'Dnd' | 'Game Night' | 'Canceled';      // Event category/type
-  rsvps: {
-    username: string;
-    status: 'Yes' | 'No' |'Maybe';
+  rsvps?: {                                      // Optional array of RSVPs
+    username: string;                            // Username of person responding
+    status: 'Yes' | 'No' | 'Maybe';             // Their response status
   }[];
 }
 
@@ -33,9 +34,9 @@ const COLLECTION_NAME = Constants.expoConfig?.extra?.USE_DEV_COLLECTION ? 'event
 
 /**
  * Custom React hook for managing calendar events in Firestore
- * Provides real-time event synchronization and CRUD operations
+ * Provides real-time event synchronization and CRUD operations including RSVP functionality
  * 
- * @returns {Object} Events array and functions to add, delete, and edit events
+ * @returns {Object} Events array and functions to add, delete, edit events, and manage RSVPs
  */
 export function useEvents() {
   // State to store all events, automatically synced with Firestore
@@ -90,16 +91,17 @@ export function useEvents() {
     if (duplicate) return false;
 
     try {
-      // Add new document to Firestore collection
+      // Add new document to Firestore collection with empty RSVP array
       await addDoc(collection(db, COLLECTION_NAME), {
         name: trimmed,
         date,
         type: trimmed as Event['type'], // Cast to known event type
+        rsvps: [], // Initialize with empty RSVP array
       });
-      console.log(' Event added to Firebase');
+      console.log('✅ Event added to Firebase');
       return true;
     } catch (error) {
-      console.error(' Failed to add event:', error);
+      console.error('❌ Failed to add event:', error);
       return false;
     }
   };
@@ -113,9 +115,9 @@ export function useEvents() {
     try {
       // Delete document from Firestore using its ID
       await deleteDoc(doc(db, COLLECTION_NAME, id));
-      console.log(` Event with ID ${id} deleted`);
+      console.log(`🗑️ Event with ID ${id} deleted`);
     } catch (error) {
-      console.error(' Failed to delete event:', error);
+      console.error('❌ Failed to delete event:', error);
     }
   };
 
@@ -137,12 +139,101 @@ export function useEvents() {
 
       // Update Firestore document with new data
       await updateDoc(doc(db, COLLECTION_NAME, id), updateData);
-      console.log(` Event with ID ${id} updated`);
+      console.log(`✏️ Event with ID ${id} updated`);
     } catch (error) {
-      console.error(' Failed to update event:', error);
+      console.error('❌ Failed to update event:', error);
     }
   };
 
-  // Return events array and CRUD functions for use in components
-  return { events, addEvent, deleteEvent, editEvent };
+  /**
+   * Add or update an RSVP for an event
+   * If user has already RSVP'd, updates their status
+   * If user hasn't RSVP'd, adds a new RSVP
+   * 
+   * @param {string} eventId - Firestore document ID of the event
+   * @param {string} username - Username of person responding
+   * @param {'Yes' | 'No' | 'Maybe'} status - RSVP status
+   * @returns {Promise<boolean>} True if RSVP was added/updated successfully
+   */
+  const addRSVP = async (
+    eventId: string,
+    username: string,
+    status: 'Yes' | 'No' | 'Maybe'
+  ) => {
+    try {
+      // Get reference to the event document
+      const eventRef = doc(db, COLLECTION_NAME, eventId);
+      
+      // Find the event in local state
+      const event = events.find(e => e.id === eventId);
+      
+      if (!event) {
+        console.error('Event not found');
+        return false;
+      }
+
+      // Get existing RSVPs or initialize empty array
+      const currentRSVPs = event.rsvps || [];
+      
+      // Remove existing RSVP from this user if any (to update it)
+      const updatedRSVPs = currentRSVPs.filter(r => r.username !== username);
+      
+      // Add new/updated RSVP
+      updatedRSVPs.push({
+        username,
+        status,
+      });
+
+      // Update Firestore document with new RSVP array
+      await updateDoc(eventRef, { rsvps: updatedRSVPs });
+      console.log(`RSVP added for ${username}`);
+      return true;
+    } catch (error) {
+      console.error('Failed to add RSVP:', error);
+      return false;
+    }
+  };
+
+  /**
+   * Remove an RSVP from an event
+   * 
+   * @param {string} eventId - Firestore document ID of the event
+   * @param {string} username - Username of person whose RSVP to remove
+   * @returns {Promise<boolean>} True if RSVP was removed successfully
+   */
+  const removeRSVP = async (eventId: string, username: string) => {
+    try {
+      // Get reference to the event document
+      const eventRef = doc(db, COLLECTION_NAME, eventId);
+      
+      // Find the event in local state
+      const event = events.find(e => e.id === eventId);
+      
+      if (!event) {
+        console.error('Event not found');
+        return false;
+      }
+
+      // Filter out the RSVP from this user
+      const updatedRSVPs = event.rsvps?.filter(r => r.username !== username) || [];
+      
+      // Update Firestore document with filtered RSVP array
+      await updateDoc(eventRef, { rsvps: updatedRSVPs });
+      console.log(`RSVP removed for ${username}`);
+      return true;
+    } catch (error) {
+      console.error('Failed to remove RSVP:', error);
+      return false;
+    }
+  };
+
+  // Return events array and CRUD functions (including RSVP functions) for use in components
+  return { 
+    events, 
+    addEvent, 
+    deleteEvent, 
+    editEvent,
+    addRSVP,      // Export RSVP functions
+    removeRSVP 
+  };
 }
