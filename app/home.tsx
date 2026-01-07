@@ -21,12 +21,17 @@ import {
 import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEvents } from '../useEvents';
+import { useUser } from './userContext';
 
-// Type definition for event objects
+// Type definition for event objects with RSVP support
 interface Event {
   id: string;
   name: string;
   date: string;
+  rsvps?: {
+    username: string;
+    status: 'Yes' | 'No' | 'Maybe';
+  }[];
 }
 
 // Array of month names for display purposes
@@ -40,8 +45,11 @@ const currentYear = new Date().getFullYear();
 const yearOptions = Array.from({ length: 21 }, (_, i) => `${currentYear - 10 + i}`);
 
 export default function Home() {
-   // Get safe area insets for proper spacing on devices with notches
+  // Get safe area insets for proper spacing on devices with notches
   const insets = useSafeAreaInsets();
+  
+  // Get current user from context for RSVP functionality
+  const { currentUser } = useUser();
   
   // State for calendar date selection
   const [selectedDate, setSelectedDate] = useState('');
@@ -78,8 +86,8 @@ export default function Home() {
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`
   );
 
-  // Custom hook to manage events (CRUD operations)
-  const { events, addEvent, deleteEvent, editEvent } = useEvents();
+  // Custom hook to manage events (CRUD operations including RSVP)
+  const { events, addEvent, deleteEvent, editEvent, addRSVP, removeRSVP } = useEvents();
 
   // Check for over-the-air (OTA) updates on component mount
   useEffect(() => {
@@ -104,6 +112,29 @@ export default function Home() {
     };
     checkForUpdate();
   }, []);
+
+  /**
+   * Get the current user's RSVP status for a specific event
+   * @param event - The event to check
+   * @returns The user's RSVP object or undefined if not found
+   */
+  const getUserRSVP = (event: Event) => {
+    if (!currentUser) return undefined;
+    return event.rsvps?.find(r => r.username === currentUser.username);
+  };
+
+  /**
+   * Handle RSVP button click
+   * @param eventId - ID of the event to RSVP to
+   * @param status - RSVP status ('Yes', 'No', or 'Maybe')
+   */
+  const handleRSVP = async (eventId: string, status: 'Yes' | 'No' | 'Maybe') => {
+    if (!currentUser) {
+      Alert.alert('Error', 'You must be logged in to RSVP');
+      return;
+    }
+    await addRSVP(eventId, currentUser.username, status);
+  };
 
   // Function to determine background color based on event name
   const getColorForEventName = (name: string) => {
@@ -250,19 +281,64 @@ export default function Home() {
             <FlatList
               data={filteredEvents}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => {
-                    // Set up state for editing the selected event
-                    setSelectedEvent(item);
-                    setDetailModalVisible(true);
-                    setEventName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? item.name : 'Custom');
-                    setEditedName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? '' : item.name);
-                  }}
-                >
-                  <Text style={styles.eventItem}>• {item.name}</Text>
-                </Pressable>
-              )}
+              renderItem={({ item }) => {
+                // Get user's RSVP status for this event
+                const userRSVP = getUserRSVP(item);
+                // Count how many people are attending (RSVP'd "Yes")
+                const yesCount = item.rsvps?.filter(r => r.status === 'Yes').length || 0;
+                
+                return (
+                  <View style={styles.eventCard}>
+                    <Pressable
+                      onPress={() => {
+                        // Set up state for editing the selected event
+                        setSelectedEvent(item);
+                        setDetailModalVisible(true);
+                        setEventName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? item.name : 'Custom');
+                        setEditedName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? '' : item.name);
+                      }}
+                    >
+                      <Text style={styles.eventItem}>• {item.name}</Text>
+                      <Text style={styles.attendeeCount}>
+                        {yesCount} {yesCount === 1 ? 'person' : 'people'} attending
+                      </Text>
+                    </Pressable>
+                    
+                    {/* RSVP Buttons */}
+                    <View style={styles.rsvpButtons}>
+                      <TouchableOpacity
+                        style={[
+                          styles.rsvpButton,
+                          userRSVP?.status === 'Yes' && styles.rsvpButtonActive
+                        ]}
+                        onPress={() => handleRSVP(item.id, 'Yes')}
+                      >
+                        <Text style={styles.rsvpButtonText}>✓ Yes</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        style={[
+                          styles.rsvpButton,
+                          userRSVP?.status === 'Maybe' && styles.rsvpButtonMaybe
+                        ]}
+                        onPress={() => handleRSVP(item.id, 'Maybe')}
+                      >
+                        <Text style={styles.rsvpButtonText}>? Maybe</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        style={[
+                          styles.rsvpButton,
+                          userRSVP?.status === 'No' && styles.rsvpButtonNo
+                        ]}
+                        onPress={() => handleRSVP(item.id, 'No')}
+                      >
+                        <Text style={styles.rsvpButtonText}>✗ No</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              }}
             />
           )}
         </View>
@@ -351,12 +427,29 @@ export default function Home() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Modal for viewing/editing existing event */}
+      {/* Modal for viewing/editing existing event - STEP 7 IMPLEMENTED HERE */}
       <Modal visible={detailModalVisible} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.label}>Edit Event</Text>
+
+              {/* STEP 7: Show attendee list if there are RSVPs */}
+              {selectedEvent && selectedEvent.rsvps && selectedEvent.rsvps.length > 0 && (
+                <View style={styles.attendeeSection}>
+                  <Text style={styles.label}>Attendees:</Text>
+                  {selectedEvent.rsvps
+                    .filter(rsvp => rsvp.status === 'Yes')
+                    .map((rsvp, idx) => (
+                      <Text key={idx} style={styles.attendeeName}>
+                        • {rsvp.username}
+                      </Text>
+                    ))}
+                  {selectedEvent.rsvps.filter(r => r.status === 'Yes').length === 0 && (
+                    <Text style={styles.noAttendees}>No one attending yet</Text>
+                  )}
+                </View>
+              )}
 
               {/* Picker for changing event type */}
               <View style={styles.pickerWrapper}>
@@ -497,7 +590,7 @@ const styles = StyleSheet.create({
   eventList: { marginTop: 20 },
   label: { fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
   noEvents: { fontStyle: 'italic', color: '#888' },
-  eventItem: { fontSize: 15, marginBottom: 8 },
+  eventItem: { fontSize: 15, marginBottom: 4 },
   input: {
     borderColor: '#ccc',
     borderWidth: 1,
@@ -521,5 +614,60 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 6,
     marginBottom: 15,
+  },
+  // RSVP-related styles added below
+  eventCard: {
+    marginBottom: 15,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  attendeeCount: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  rsvpButtons: {
+    flexDirection: 'row',
+    marginTop: 10,
+    gap: 8,
+  },
+  rsvpButton: {
+    flex: 1,
+    padding: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  rsvpButtonActive: {
+    backgroundColor: '#4CAF50',
+  },
+  rsvpButtonMaybe: {
+    backgroundColor: '#FFA726',
+  },
+  rsvpButtonNo: {
+    backgroundColor: '#EF5350',
+  },
+  rsvpButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  // Step 7 styles - Attendee section in detail modal
+  attendeeSection: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 15,
+  },
+  attendeeName: {
+    fontSize: 14,
+    marginLeft: 10,
+    marginVertical: 2,
+  },
+  noAttendees: {
+    fontSize: 13,
+    color: '#888',
+    fontStyle: 'italic',
+    marginLeft: 10,
   },
 });
