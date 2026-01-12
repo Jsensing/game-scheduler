@@ -286,6 +286,8 @@ export default function Home() {
                 const userRSVP = getUserRSVP(item);
                 // Count how many people are attending (RSVP'd "Yes")
                 const yesCount = item.rsvps?.filter(r => r.status === 'Yes').length || 0;
+                const maybeCount = item.rsvps?.filter(r => r.status === 'Maybe').length || 0;
+                const noCount = item.rsvps?.filter(r => r.status === 'No').length || 0;
                 
                 return (
                   <View style={styles.eventCard}>
@@ -299,9 +301,17 @@ export default function Home() {
                       }}
                     >
                       <Text style={styles.eventItem}>• {item.name}</Text>
-                      <Text style={styles.attendeeCount}>
-                        {yesCount} {yesCount === 1 ? 'person' : 'people'} attending
-                      </Text>
+                      <View style={styles.rsvpCountsContainer}>
+                        <Text style={styles.rsvpCount}>
+                          Yes: {yesCount}
+                        </Text>
+                        <Text style={styles.rsvpCount}>
+                          Maybe: {maybeCount}
+                        </Text>
+                        <Text style={styles.rsvpCount}>
+                          No: {noCount}
+                        </Text>
+                      </View>
                     </Pressable>
                     
                     {/* RSVP Buttons */}
@@ -448,7 +458,7 @@ export default function Home() {
                           ?.filter(rsvp => rsvp.status === 'Yes')
                           .map((rsvp, idx) => (
                             <Text key={idx} style={styles.attendeeName}>
-                              • {rsvp.username}
+                               {rsvp.username}
                             </Text>
                           ))}
                         {(selectedEvent.rsvps?.filter(r => r.status === 'Yes').length ?? 0) === 0 && (
@@ -463,7 +473,7 @@ export default function Home() {
                           ?.filter(rsvp => rsvp.status === 'Maybe')
                           .map((rsvp, idx) => (
                             <Text key={idx} style={styles.attendeeName}>
-                              • {rsvp.username}
+                               {rsvp.username}
                             </Text>
                           ))}
                         {(selectedEvent.rsvps?.filter(r => r.status === 'Maybe').length ?? 0) === 0 && (
@@ -478,7 +488,7 @@ export default function Home() {
                           ?.filter(rsvp => rsvp.status === 'No')
                           .map((rsvp, idx) => (
                             <Text key={idx} style={styles.attendeeName}>
-                              • {rsvp.username}
+                               {rsvp.username}
                             </Text>
                           ))}
                         {(selectedEvent.rsvps?.filter(r => r.status === 'No').length ?? 0) === 0 && (
@@ -665,10 +675,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
   },
-  attendeeCount: {
+  rsvpCountsContainer: {
+    flexDirection: 'row',
+    marginTop: 4,
+    gap: 12,
+  },
+  rsvpCount: {
     fontSize: 12,
     color: '#666',
-    marginTop: 4,
+    fontWeight: '500',
   },
   rsvpButtons: {
     flexDirection: 'row',
