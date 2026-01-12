@@ -427,29 +427,72 @@ export default function Home() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Modal for viewing/editing existing event - STEP 7 IMPLEMENTED HERE */}
+      {/* Modal for viewing/editing existing event*/}
       <Modal visible={detailModalVisible} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.label}>Edit Event</Text>
 
-              {/* STEP 7: Show attendee list if there are RSVPs */}
-              {selectedEvent && selectedEvent.rsvps && selectedEvent.rsvps.length > 0 && (
-                <View style={styles.attendeeSection}>
-                  <Text style={styles.label}>Attendees:</Text>
-                  {selectedEvent.rsvps
-                    .filter(rsvp => rsvp.status === 'Yes')
-                    .map((rsvp, idx) => (
-                      <Text key={idx} style={styles.attendeeName}>
-                        • {rsvp.username}
-                      </Text>
-                    ))}
-                  {selectedEvent.rsvps.filter(r => r.status === 'Yes').length === 0 && (
-                    <Text style={styles.noAttendees}>No one attending yet</Text>
-                  )}
-                </View>
-              )}
+              {/*Show attendee list if there are RSVPs */}
+                {selectedEvent && selectedEvent.rsvps && selectedEvent.rsvps.length > 0 && (
+                  <View style={styles.attendeeSection}>
+                    <Text style={styles.label}>RSVPs:</Text>
+                    
+                    {/* Three columns side by side */}
+                    <View style={styles.rsvpColumnsContainer}>
+                      {/* Yes Column */}
+                      <View style={styles.rsvpColumn}>
+                        <Text style={styles.rsvpCategoryTitle}>✓ Yes</Text>
+                        {selectedEvent.rsvps
+                          ?.filter(rsvp => rsvp.status === 'Yes')
+                          .map((rsvp, idx) => (
+                            <Text key={idx} style={styles.attendeeName}>
+                              • {rsvp.username}
+                            </Text>
+                          ))}
+                        {(selectedEvent.rsvps?.filter(r => r.status === 'Yes').length ?? 0) === 0 && (
+                          <Text style={styles.emptyColumn}>—</Text>
+                        )}
+                      </View>
+                      
+                      {/* Maybe Column */}
+                      <View style={styles.rsvpColumn}>
+                        <Text style={styles.rsvpCategoryTitle}>? Maybe</Text>
+                        {selectedEvent.rsvps
+                          ?.filter(rsvp => rsvp.status === 'Maybe')
+                          .map((rsvp, idx) => (
+                            <Text key={idx} style={styles.attendeeName}>
+                              • {rsvp.username}
+                            </Text>
+                          ))}
+                        {(selectedEvent.rsvps?.filter(r => r.status === 'Maybe').length ?? 0) === 0 && (
+                          <Text style={styles.emptyColumn}>—</Text>
+                        )}
+                      </View>
+                      
+                      {/* No Column */}
+                      <View style={styles.rsvpColumn}>
+                        <Text style={styles.rsvpCategoryTitle}>✗ No</Text>
+                        {selectedEvent.rsvps
+                          ?.filter(rsvp => rsvp.status === 'No')
+                          .map((rsvp, idx) => (
+                            <Text key={idx} style={styles.attendeeName}>
+                              • {rsvp.username}
+                            </Text>
+                          ))}
+                        {(selectedEvent.rsvps?.filter(r => r.status === 'No').length ?? 0) === 0 && (
+                          <Text style={styles.emptyColumn}>—</Text>
+                        )}
+                      </View>
+                    </View>
+                    
+                    {/* Show message if no RSVPs at all */}
+                    {(selectedEvent.rsvps?.length ?? 0) === 0 && (
+                      <Text style={styles.noAttendees}>No RSVPs yet</Text>
+                    )}
+                  </View>
+                )}
 
               {/* Picker for changing event type */}
               <View style={styles.pickerWrapper}>
@@ -652,17 +695,40 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
-  // Step 7 styles - Attendee section in detail modal
+  //Attendee section in detail modal
   attendeeSection: {
     backgroundColor: '#f0f0f0',
     padding: 10,
     borderRadius: 6,
     marginBottom: 15,
   },
+  rsvpColumnsContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  gap: 10,
+  },
+  rsvpColumn: {
+  flex: 1,
+  backgroundColor: '#fff',
+  padding: 8,
+  borderRadius: 4,
+  },
+  rsvpCategoryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#333',
+  },
   attendeeName: {
     fontSize: 14,
     marginLeft: 10,
     marginVertical: 2,
+  },
+  emptyColumn: {
+  fontSize: 12,
+  color: '#999',
+  textAlign: 'center',
+  fontStyle: 'italic',
   },
   noAttendees: {
     fontSize: 13,
