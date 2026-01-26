@@ -281,6 +281,9 @@ export default function Home() {
             <FlatList
               data={filteredEvents}
               keyExtractor={(item) => item.id}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+              style={styles.eventFlatList}
               renderItem={({ item }) => {
                 // Get user's RSVP status for this event
                 const userRSVP = getUserRSVP(item);
@@ -352,7 +355,7 @@ export default function Home() {
             />
           )}
         </View>
-      </View>
+        </View>
 
       {/* Fixed footer with Create Event button */}
       <KeyboardAvoidingView
@@ -640,7 +643,6 @@ const styles = StyleSheet.create({
   },
   footer: { backgroundColor: '#fff' },
   footerInner: { paddingHorizontal: 20, paddingTop: 10, marginBottom: 30 },
-  eventList: { marginTop: 20 },
   label: { fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
   noEvents: { fontStyle: 'italic', color: '#888' },
   eventItem: { fontSize: 15, marginBottom: 4 },
@@ -710,6 +712,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
+  eventList: {
+    marginTop: 20,
+    flex: 1,
+  },
+  eventFlatList: {
+    maxHeight: 300,
+  },
+
   //Attendee section in detail modal
   attendeeSection: {
     backgroundColor: '#f0f0f0',
