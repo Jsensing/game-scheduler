@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cedbadef-e187-4ff2-ad94-3abb95310807" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/home.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -49,7 +48,7 @@
     "android.gradle.sync.needed": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "gs-12",
+    "git-widget-placeholder": "GS-13",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/wrait/OneDrive/Desktop/game-scheduler",
     "settings.editor.selected.configurable": "AndroidSdkUpdater"
