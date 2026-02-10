@@ -93,7 +93,6 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
         style={styles.input}
         placeholder="Username"
         value={username}
-        autoCapitalize="none"           // Prevent auto-capitalization for usernames
         onChangeText={setUsername}
       />
 
