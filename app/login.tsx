@@ -65,7 +65,7 @@ useEffect(() => {
     }
   };
   loadSavedCredentials();
-}, []);
+}, []); 
 
   /**
    * Handles the login process
