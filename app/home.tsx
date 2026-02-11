@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -53,7 +54,7 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   
   // Get current user from context for RSVP functionality
-  const { currentUser } = useUser();
+  const { currentUser, setCurrentUser } = useUser();
   
   // State for calendar date selection
   const [selectedDate, setSelectedDate] = useState('');
@@ -138,6 +139,40 @@ export default function Home() {
       return;
     }
     await addRSVP(eventId, currentUser.username, status);
+  };
+
+  /**
+   * Handle logout
+   * Clears user context and Remember Me data, then reloads the app
+   */
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Clear Remember Me data
+              await AsyncStorage.removeItem('savedUsername');
+              await AsyncStorage.removeItem('rememberMe');
+              
+              // Clear current user
+              setCurrentUser(null);
+              
+              // Reload app to go back to login
+              await Updates.reloadAsync();
+            } catch (error) {
+              console.error('Error logging out:', error);
+              Alert.alert('Error', 'Something went wrong while logging out.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Function to determine background color based on event name
@@ -249,6 +284,13 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Logout button in top right corner */}
+      <View style={styles.logoutContainer}>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Main calendar and event list container */}
       <View style={styles.calendarContainer}>
         {/* Calendar component with custom styling and event markers */}
@@ -639,6 +681,23 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: 'white' 
+  },
+  logoutContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1000,
+  },
+  logoutButton: {
+    backgroundColor: '#FF6347',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+  },
+  logoutText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   calendarContainer: { 
     flex: 1, 
