@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Updates from 'expo-updates';
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import Home from './home';
 import Login from './login';
 import SignUp from './signUp';
@@ -11,6 +12,7 @@ import { UserProvider } from './userContext';
  * Acts as a simple router based on authentication state
  * Wrapped with UserProvider to provide user context throughout the app
  * Includes Remember Me functionality - auto-logs in users who enabled it
+ * Checks for OTA updates on every app launch
  */
 export default function App() {
   // State to track whether user is authenticated
@@ -23,6 +25,30 @@ export default function App() {
 
   // State to show a loading screen while checking for saved session
   const [isLoading, setIsLoading] = useState(true);
+
+  /**
+   * Check for OTA updates on app launch
+   * This runs before checking Remember Me to ensure updates are applied first
+   */
+  useEffect(() => {
+    const checkForUpdate = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            'Update Available',
+            'Update installed, please restart the app to apply the update.',
+            [{ text: 'OK', onPress: () => Updates.reloadAsync() }],
+            { cancelable: false }
+          );
+        }
+      } catch (e) {
+        console.log('Error checking for updates:', e);
+      }
+    };
+    checkForUpdate();
+  }, []);
 
   /**
    * Check for a saved "Remember Me" session when the app launches
@@ -80,7 +106,6 @@ export default function App() {
       ) : (
         // Default: render the Login component
         <Login
-          key = "login"
           // Callback fired when user successfully logs in
           // Sets authentication state to true, which triggers Home screen render
           onLogin={() => setIsLoggedIn(true)}
