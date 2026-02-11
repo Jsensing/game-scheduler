@@ -80,6 +80,7 @@ export default function App() {
       ) : (
         // Default: render the Login component
         <Login
+          key = "login"
           // Callback fired when user successfully logs in
           // Sets authentication state to true, which triggers Home screen render
           onLogin={() => setIsLoggedIn(true)}
