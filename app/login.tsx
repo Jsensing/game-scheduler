@@ -40,26 +40,32 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
   const [rememberMe, setRememberMe] = useState(false);
 
   /**
-   * Check for saved credentials when component mounts
-   * If user previously enabled Remember Me, auto-fill the username
-   */
-  useEffect(() => {
-    const loadSavedCredentials = async () => {
-      try {
-        const savedUsername = await AsyncStorage.getItem('savedUsername');
-        const savedRememberMe = await AsyncStorage.getItem('rememberMe');
+ * Check for saved credentials and clear password when component mounts
+ * If user previously enabled Remember Me, auto-fill the username
+ */
+useEffect(() => {
+  const loadSavedCredentials = async () => {
+    // Always clear password for security
+    setPassword('');
+    
+    try {
+      const savedUsername = await AsyncStorage.getItem('savedUsername');
+      const savedRememberMe = await AsyncStorage.getItem('rememberMe');
 
-        // If both values exist and remember me was true, restore username
-        if (savedUsername && savedRememberMe === 'true') {
-          setUsername(savedUsername);
-          setRememberMe(true);
-        }
-      } catch (error) {
-        console.error('Error loading saved credentials:', error);
+      // If both values exist and remember me was true, restore username
+      if (savedUsername && savedRememberMe === 'true') {
+        setUsername(savedUsername);
+        setRememberMe(true);
+      } else {
+        // If no Remember Me, clear username too
+        setUsername('');
       }
-    };
-    loadSavedCredentials();
-  }, []);
+    } catch (error) {
+      console.error('Error loading saved credentials:', error);
+    }
+  };
+  loadSavedCredentials();
+}, []);
 
   /**
    * Handles the login process
