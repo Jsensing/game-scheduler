@@ -141,6 +141,7 @@ useEffect(() => {
       <TextInput
         style={styles.input}
         placeholder="Username"
+        placeholderTextColor="#999"
         value={username}
         onChangeText={setUsername}
       />
@@ -149,6 +150,7 @@ useEffect(() => {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#999"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
