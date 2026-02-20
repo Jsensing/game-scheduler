@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
 import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -23,6 +22,7 @@ import {
 import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEvents } from '../useEvents';
+import CustomPicker from './customPicker';
 import { useUser } from './userContext';
 
 // Get screen dimensions for responsive sizing
@@ -426,21 +426,17 @@ export default function Home() {
               <Text style={styles.label}>Select Event Type</Text>
               
               {/* Picker for selecting event type */}
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={eventName}
-                  onValueChange={(value) => setEventName(value)}
-                  mode="dropdown"
-                  style={{ backgroundColor: '#fff', color: '#000'}}
-                  dropdownIconColor="#000"
-                >
-                  <Picker.Item label="Select an event..." value="" color="#000" />
-                  <Picker.Item label="DnD" value="Dnd" color="#000" />
-                  <Picker.Item label="Game Night" value="Game Night" color="#000" />
-                  <Picker.Item label="Canceled" value="Canceled" color="#000" />
-                  <Picker.Item label="Custom" value="Custom" color="#000" />
-                </Picker>
-              </View>
+              <CustomPicker
+                selectedValue={eventName}
+                onValueChange={(value) => setEventName(value)}
+                placeholder="Select an event..."
+                options={[
+                  { label: 'DnD', value: 'Dnd' },
+                  { label: 'Game Night', value: 'Game Night' },
+                  { label: 'Canceled', value: 'Canceled' },
+                  { label: 'Custom', value: 'Custom' },
+                ]}
+              />
 
               {/* Show custom name input only when "Custom" is selected */}
               {eventName === 'Custom' && (
@@ -557,17 +553,16 @@ export default function Home() {
               )}
 
               {/* Picker for changing event type */}
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={eventName}
-                  onValueChange={(value) => setEventName(value)}
-                >
-                  <Picker.Item label="DnD" value="Dnd" color="#000" />
-                  <Picker.Item label="Game Night" value="Game Night" color="#000" />
-                  <Picker.Item label="Canceled" value="Canceled" color="#000" />
-                  <Picker.Item label="Custom" value="Custom" color="#000" />
-                </Picker>
-              </View>
+              <CustomPicker
+                selectedValue={eventName}
+                onValueChange={(value) => setEventName(value)}
+                options={[
+                  { label: 'DnD', value: 'Dnd' },
+                  { label: 'Game Night', value: 'Game Night' },
+                  { label: 'Canceled', value: 'Canceled' },
+                  { label: 'Custom', value: 'Custom' },
+                ]}
+              />
 
               {/* Show custom name input when editing custom event */}
               {eventName === 'Custom' && (
@@ -639,28 +634,24 @@ export default function Home() {
               <Text style={styles.label}>Select Month and Year</Text>
               
               {/* Month picker */}
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={calendarMonth}
-                  onValueChange={(value) => setCalendarMonth(Number(value))}
-                >
-                  {monthNames.map((month, idx) => (
-                    <Picker.Item key={month} label={month} value={idx} />
-                  ))}
-                </Picker>
-              </View>
+              <CustomPicker
+                selectedValue={calendarMonth.toString()}
+                onValueChange={(value) => setCalendarMonth(Number(value))}
+                options={monthNames.map((month, idx) => ({
+                  label: month,
+                  value: idx.toString(),
+                }))}
+              />
               
               {/* Year picker */}
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={calendarYear}
-                  onValueChange={(value) => setCalendarYear(Number(value))}
-                >
-                  {yearOptions.map((year) => (
-                    <Picker.Item key={year} label={year} value={Number(year)} />
-                  ))}
-                </Picker>
-              </View>
+              <CustomPicker
+                selectedValue={calendarYear.toString()}
+                onValueChange={(value) => setCalendarYear(Number(value))}
+                options={yearOptions.map((year) => ({
+                  label: year,
+                  value: year,
+                }))}
+              />
               
               <Button
                 title="Done"
