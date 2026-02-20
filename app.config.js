@@ -68,8 +68,11 @@ export default {
     android: {
       // Unique package identifier for the Android app
       // Format: com.yourcompany.appname
-      package: 'com.wraith176.gamescheduler'
+      package: 'com.wraith176.gamescheduler',
+      userInterfaceStyle: "light"
     },
+
+    userInterfaceStyle: "light",
     
     /**
      * Custom configuration values accessible in the app
