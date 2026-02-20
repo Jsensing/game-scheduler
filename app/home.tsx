@@ -430,6 +430,9 @@ export default function Home() {
                 <Picker
                   selectedValue={eventName}
                   onValueChange={(value) => setEventName(value)}
+                  mode="dropdown"
+                  style={{ backgroundColor: '#fff', color: '#000'}}
+                  dropdownIconColor="#000"
                 >
                   <Picker.Item label="Select an event..." value="" color="#000" />
                   <Picker.Item label="DnD" value="Dnd" color="#000" />
@@ -742,7 +745,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0)',
   },
   modalContent: {
     backgroundColor: 'white',
@@ -756,6 +759,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 6,
     marginBottom: 15,
+    backgroundColor:'#fff',
   },
   // RSVP-related styles
   eventCard: {
