@@ -99,7 +99,7 @@ export default {
      */
     plugins: ['expo-router', ['expo-notifications',
        {
-        icon: './assets/notification-icon.png',
+        icon: './assets/images/notifications-icon.png',
         color: '#ffffff',
        },
       ],
