@@ -13,7 +13,9 @@ import {
   View,
 } from 'react-native';
 import { db } from '../firebase';
+import { registerForPushNotificationsAsync } from './notifications';
 import { useUser } from './userContext';
+
 
 // Props interface for the Login component
 interface LoginProps {
@@ -97,6 +99,9 @@ useEffect(() => {
 
         // If password matches, trigger successful login
         if (isMatch) {
+          //get push token
+          const pushToken = await registerForPushNotificationsAsync();
+
           // Save or clear credentials based on Remember Me toggle
           if (rememberMe) {
             // User wants to be remembered - save username
