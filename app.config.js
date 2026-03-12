@@ -97,6 +97,12 @@ export default {
      * Expo plugins to enable additional functionality
      * expo-router: Required for file-based routing to work correctly
      */
-    plugins: ['expo-router'] // REQUIRED for expo-router to function correctly
+    plugins: ['expo-router', ['expo-notifications',
+       {
+        icon: './assets/notification-icon.png',
+        color: '#ffffff',
+       },
+      ],
+    ], // REQUIRED for expo-router to function correctly
   }
 };
