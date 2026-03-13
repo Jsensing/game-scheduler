@@ -1,6 +1,8 @@
-import { Stack } from 'expo-router';
 import { getApps, initializeApp } from 'firebase/app';
 import { initializeFirestore } from 'firebase/firestore';
+import React from 'react';
+import RootNavigator from '../components/RootNavigator';
+import { UserProvider } from '../context/userContext';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBGUPZYreAxv3DJ11bIxmoSvt993-V9VkY',
@@ -21,8 +23,8 @@ if (!getApps().length) {
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: 'Game Scheduler' }} />
-    </Stack>
+    <UserProvider>
+      <RootNavigator />
+    </UserProvider>
   );
 }
