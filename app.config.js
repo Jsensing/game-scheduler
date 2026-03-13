@@ -47,9 +47,7 @@ export default {
      * 'appVersion' means runtime version matches the app version
      * Updates are only compatible if runtime versions match
      */
-    runtimeVersion: {
-      policy: 'appVersion'
-    },
+    runtimeVersion: "1.0.0",
     
     // Pattern matching all assets to include in the app bundle
     assetBundlePatterns: ['**/*'],
@@ -69,7 +67,8 @@ export default {
       // Unique package identifier for the Android app
       // Format: com.yourcompany.appname
       package: 'com.wraith176.gamescheduler',
-      userInterfaceStyle: "light"
+      userInterfaceStyle: "light",
+      googleServicesFile: "./google-services.json"
     },
 
     userInterfaceStyle: "light",
@@ -83,6 +82,13 @@ export default {
       // false = use production 'events' collection
       // true = use development 'events_dev' collection
       USE_DEV_COLLECTION: false,
+
+      API_KEY: process.env.API_KEY,
+      AUTH_DOMAIN: process.env.AUTH_DOMAIN,
+      PROJECT_ID: process.env.PROJECT_ID,
+      STORAGE_BUCKET: process.env.STORAGE_BUCKET,
+      MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
+      APP_ID: process.env.APP_ID,
       
       /**
        * EAS (Expo Application Services) configuration
@@ -97,6 +103,12 @@ export default {
      * Expo plugins to enable additional functionality
      * expo-router: Required for file-based routing to work correctly
      */
-    plugins: ['expo-router'] // REQUIRED for expo-router to function correctly
+    plugins: ['expo-router', ['expo-notifications',
+       {
+        icon: './assets/images/notifications-icon.png',
+        color: '#ffffff',
+       },
+      ],
+    ], // REQUIRED for expo-router to function correctly
   }
 };
