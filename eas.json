@@ -17,7 +17,15 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "API_KEY": "AIzaSyBGUPZYreAxv3DJ11bIxmoSvt993-V9VkY",
+        "AUTH_DOMAIN": "game-scheduler-7483d.firebaseapp.com",
+        "PROJECT_ID": "game-scheduler-7483d",
+        "STORAGE_BUCKET": "game-scheduler-7483d.firebasestorage.app",
+        "MESSAGING_SENDER_ID": "298701316276",
+        "APP_ID": "1:298701316276:android:31a93121af93c5c486f7e1"
+      }
     }
   },
   "submit": {
