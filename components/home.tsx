@@ -21,9 +21,9 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useUser } from '../context/userContext';
 import { useEvents } from '../useEvents';
 import CustomPicker from './customPicker';
-import { useUser } from './userContext';
 
 // Get screen dimensions for responsive sizing
 const { width, height } = Dimensions.get('window');
