@@ -78,19 +78,15 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
    * 5. Shows error alert if credentials are invalid or an error occurs
    */
   const handleLogin = async () => {
-    console.log('handleLogin called');
     try {
       // Get reference to the 'users' collection in Firestore
       const usersRef = collection(db, 'users');
       
       // Create query to find user document with matching username
       const q = query(usersRef, where('username', '==', username));
-      console.log('Querying Firestore for:', username);
       
       // Execute the query and get results
       const snapshot = await getDocs(q);
-      console.log('Snapshot empty:', snapshot.empty);   // Add this
-      console.log('Snapshot size:', snapshot.size);
 
       // Check if a user with this username exists
       if (!snapshot.empty) {
@@ -107,17 +103,14 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
           // Fire and forget — don't block login on push token registration
           registerForPushNotificationsAsync()
             .then(async (pushToken) => {
-              console.log('Push token received:', pushToken); 
               if (pushToken) {
                 try {
                   const userRef = doc(db, 'users', userId);
-                  await updateDoc(userRef, { pushToken });
-                  console.log('Push token saved successfully'); 
+                  await updateDoc(userRef, { pushToken }); 
                 } catch (err) {
                   console.error('Failed to save push token to Firestore:', err);
                 }
               } else {
-                console.log('No push token returned - check device/permissions'); 
               }
             })
             .catch(err => console.error('Push token error:', err));
