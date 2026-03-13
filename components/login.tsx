@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bcrypt from 'bcryptjs';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,8 +12,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useUser } from '../context/userContext';
 import { db } from '../firebase';
-import { useUser } from './userContext';
+import { registerForPushNotificationsAsync } from '../services/notifications';
+
 
 // Props interface for the Login component
 interface LoginProps {
@@ -40,32 +42,32 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
   const [rememberMe, setRememberMe] = useState(false);
 
   /**
- * Check for saved credentials and clear password when component mounts
- * If user previously enabled Remember Me, auto-fill the username
- */
-useEffect(() => {
-  const loadSavedCredentials = async () => {
-    // Always clear password for security
-    setPassword('');
-    
-    try {
-      const savedUsername = await AsyncStorage.getItem('savedUsername');
-      const savedRememberMe = await AsyncStorage.getItem('rememberMe');
+   * Check for saved credentials and clear password when component mounts
+   * If user previously enabled Remember Me, auto-fill the username
+   */
+  useEffect(() => {
+    const loadSavedCredentials = async () => {
+      // Always clear password for security
+      setPassword('');
+      
+      try {
+        const savedUsername = await AsyncStorage.getItem('savedUsername');
+        const savedRememberMe = await AsyncStorage.getItem('rememberMe');
 
-      // If both values exist and remember me was true, restore username
-      if (savedUsername && savedRememberMe === 'true') {
-        setUsername(savedUsername);
-        setRememberMe(true);
-      } else {
-        // If no Remember Me, clear username too
-        setUsername('');
+        // If both values exist and remember me was true, restore username
+        if (savedUsername && savedRememberMe === 'true') {
+          setUsername(savedUsername);
+          setRememberMe(true);
+        } else {
+          // If no Remember Me, clear username too
+          setUsername('');
+        }
+      } catch (error) {
+        console.error('Error loading saved credentials:', error);
       }
-    } catch (error) {
-      console.error('Error loading saved credentials:', error);
-    }
-  };
-  loadSavedCredentials();
-}, []); 
+    };
+    loadSavedCredentials();
+  }, []); 
 
   /**
    * Handles the login process
@@ -90,6 +92,7 @@ useEffect(() => {
       if (!snapshot.empty) {
         // Extract user data from the first (should be only) matching document
         const userData = snapshot.docs[0].data();
+        const userId = snapshot.docs[0].id;
 
         // Compare entered password with stored hashed password using bcrypt
         // bcrypt.compareSync handles the hashing and comparison securely
@@ -97,6 +100,21 @@ useEffect(() => {
 
         // If password matches, trigger successful login
         if (isMatch) {
+          // Fire and forget — don't block login on push token registration
+          registerForPushNotificationsAsync()
+            .then(async (pushToken) => {
+              if (pushToken) {
+                try {
+                  const userRef = doc(db, 'users', userId);
+                  await updateDoc(userRef, { pushToken }); 
+                } catch (err) {
+                  console.error('Failed to save push token to Firestore:', err);
+                }
+              } else {
+              }
+            })
+            .catch(err => console.error('Push token error:', err));
+
           // Save or clear credentials based on Remember Me toggle
           if (rememberMe) {
             // User wants to be remembered - save username
