@@ -48,5 +48,8 @@ service-account.json
 # Google services
 google-services.json
 
+# ...except in android/app/ where the build needs it
+!android/app/google-services.json
+
 # EAS
 .eas
