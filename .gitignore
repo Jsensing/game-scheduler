@@ -39,3 +39,14 @@ yarn-error.*
 
 .idea
 app-example
+
+# Firebase service account keys
+service-account.json
+*-service-account.json
+*serviceAccountKey*.json
+
+# Google services
+google-services.json
+
+# EAS
+.eas
