@@ -149,3 +149,32 @@ exports.sendRSVPReminders = onSchedule('0 18 * * *', async () => {
 
   console.log(`Sent ${messages.length} RSVP reminder(s) for events on ${targetDate}`);
 });
+
+exports.deleteOldEvents = onSchedule('0 6 * * *', async () => {
+  // Calculate the date 60 days ago
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 60);
+  const cutoffString = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+  console.log(`Deleting events older than ${cutoffString}`);
+
+  // Query events older than 60 days
+  const eventsSnapshot = await admin.firestore()
+    .collection('events')
+    .where('date', '<', cutoffString)
+    .get();
+
+  if (eventsSnapshot.empty) {
+    console.log('No old events to delete');
+    return;
+  }
+
+  // Delete in batches of 500 (Firestore limit)
+  const batch = admin.firestore().batch();
+  eventsSnapshot.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  await batch.commit();
+  console.log(`Deleted ${eventsSnapshot.size} old events`);
+});
