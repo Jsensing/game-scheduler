@@ -31,8 +31,11 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
       });
     }
 
+    console.log('Is physical device:', Device.isDevice); // Add this
+
     if (Device.isDevice) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      console.log('Existing permission status:', existingStatus); // Add this
       let finalStatus = existingStatus;
 
       if (existingStatus !== 'granted') {
@@ -40,16 +43,22 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
         finalStatus = status;
       }
 
+      console.log('Final permission status:', finalStatus); // Add this
+
       if (finalStatus !== 'granted') {
         console.warn('Push notification permission not granted');
         return null;
       }
+
+      console.log('Project ID:', Constants.expoConfig?.extra?.eas?.projectId); // Add this
 
       token = (
         await Notifications.getExpoPushTokenAsync({
           projectId: Constants.expoConfig?.extra?.eas?.projectId,
         })
       ).data;
+
+      console.log('Token generated:', token); // Add this
     } else {
       console.warn('Must use physical device for push notifications');
     }
