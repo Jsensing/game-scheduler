@@ -150,7 +150,7 @@ exports.sendRSVPReminders = onSchedule('0 18 * * *', async () => {
   console.log(`Sent ${messages.length} RSVP reminder(s) for events on ${targetDate}`);
 });
 
-exports.deleteOldEvents = onSchedule('0 0 * * *', async () => {
+exports.deleteOldEvents = onSchedule('0 6 * * *', async () => {
   // Calculate the date 60 days ago
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - 60);
