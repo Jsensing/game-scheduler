@@ -134,6 +134,7 @@ export default function Home() {
     switch (name) {
       case 'Dnd': return '#90ee90';
       case 'Game Night': return '#FFD700';
+      case 'To Be Determined': return '#4A90D9';
       case 'Canceled': return '#FF6347';
       default: return '#ccc';
     }
@@ -206,7 +207,7 @@ export default function Home() {
   useEffect(() => {
     if (detailModalVisible && selectedEvent) {
       const name = selectedEvent.name;
-      if (['Dnd', 'Game Night', 'Canceled'].includes(name)) {
+      if (['Dnd', 'Game Night', 'To Be Determined', 'Canceled'].includes(name)) {
         setEventName(name);
         setEditedName('');
       } else {
@@ -282,8 +283,8 @@ export default function Home() {
                       onPress={() => {
                         setSelectedEvent(item);
                         setDetailModalVisible(true);
-                        setEventName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? item.name : 'Custom');
-                        setEditedName(['Dnd', 'Game Night', 'Canceled'].includes(item.name) ? '' : item.name);
+                        setEventName(['Dnd', 'Game Night', 'To Be Determined', 'Canceled'].includes(item.name) ? item.name : 'Custom');
+                        setEditedName(['Dnd', 'Game Night', 'To Be Determined', 'Canceled'].includes(item.name) ? '' : item.name);
                       }}
                     >
                       <Text style={styles.eventItem}>• {item.name}</Text>
@@ -347,6 +348,7 @@ export default function Home() {
                 options={[
                   { label: 'DnD', value: 'Dnd' },
                   { label: 'Game Night', value: 'Game Night' },
+                  {label: 'To Be Determined', value: 'To Be Determined'},
                   { label: 'Canceled', value: 'Canceled' },
                   { label: 'Custom', value: 'Custom' },
                 ]}
@@ -444,6 +446,7 @@ export default function Home() {
                 options={[
                   { label: 'DnD', value: 'Dnd' },
                   { label: 'Game Night', value: 'Game Night' },
+                  {label: 'To Be Determined', value: 'To Be Determined'},
                   { label: 'Canceled', value: 'Canceled' },
                   { label: 'Custom', value: 'Custom' },
                 ]}
