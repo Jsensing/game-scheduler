@@ -13,7 +13,6 @@ import {
   Pressable,
   SafeAreaView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -27,9 +26,6 @@ import { useEvents } from '../useEvents';
 import CustomPicker from './customPicker';
 
 const { width, height } = Dimensions.get('window');
-
-// Usernames that can see and use test mode
-const TEST_MODE_USERS = ['Jacob'];
 
 interface Event {
   id: string;
@@ -62,15 +58,11 @@ export default function Home() {
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
-  const [testMode, setTestMode] = useState(false);
   const [currentDate, setCurrentDate] = useState(
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`
   );
 
   const { events, addEvent, deleteEvent, editEvent, addRSVP, removeRSVP } = useEvents();
-
-  // Only show test mode toggle to users in TEST_MODE_USERS
-  const canUseTestMode = currentUser && TEST_MODE_USERS.includes(currentUser.username);
 
   useEffect(() => {
     const checkForUpdate = async () => {
@@ -178,7 +170,7 @@ export default function Home() {
   }, [events, selectedDate]);
 
   const handleSaveEventWrapper = async (finalName: string) => {
-    const success = await addEvent(finalName, selectedDate, testMode);
+    const success = await addEvent(finalName, selectedDate)
     if (!success) {
       Alert.alert('Duplicate Event', 'An event with the same name already exists on this day.');
       return;
@@ -224,20 +216,6 @@ export default function Home() {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
-
-      {canUseTestMode && (
-        <View style={styles.testModeContainer}>
-          <Text style={styles.testModeLabel}>Test Mode</Text>
-          <Switch
-            value={testMode}
-            onValueChange={setTestMode}
-            trackColor={{ false: '#ccc', true: '#FF6347' }}
-          />
-          {testMode && (
-            <Text style={styles.testModeActive}>ON — only you get notified</Text>
-          )}
-        </View>
-      )}
 
       <View style={styles.calendarContainer}>
         <Calendar
@@ -363,9 +341,6 @@ export default function Home() {
                     onChangeText={setEditedName}
                   />
                 </>
-              )}
-              {canUseTestMode && testMode && (
-                <Text style={styles.testModeBadge}>🧪 Test Mode — only you will be notified</Text>
               )}
               <View style={{ marginTop: 20 }}>
                 <View style={{ marginBottom: 10 }}>
@@ -560,31 +535,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
-  },
-  testModeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingTop: 10,
-    gap: 8,
-    zIndex: 999,
-  },
-  testModeLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  testModeActive: {
-    fontSize: 12,
-    color: '#FF6347',
-    fontStyle: 'italic',
-  },
-  testModeBadge: {
-    fontSize: 13,
-    color: '#FF6347',
-    fontStyle: 'italic',
-    marginTop: 8,
-    textAlign: 'center',
   },
   calendarContainer: { 
     flex: 1, 

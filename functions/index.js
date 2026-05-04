@@ -4,16 +4,12 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 
 admin.initializeApp();
 
-// Only these usernames receive notifications when test mode is ON
-const TEST_WHITELIST = ['Jacob'];
-
 /**
  * Triggered when a new event is created in Firestore
- * Sends a push notification to all users (or just the whitelist in test mode)
+ * Sends a push notification to all users
  */
 exports.sendEventNotification = onDocumentCreated('events/{eventId}', async (event) => {
   const newEvent = event.data.data();
-  const isTestMode = newEvent.testMode === true;
 
   const usersSnapshot = await admin.firestore().collection('users').get();
   const messages = [];
@@ -21,9 +17,6 @@ exports.sendEventNotification = onDocumentCreated('events/{eventId}', async (eve
   usersSnapshot.forEach((userDoc) => {
     const userData = userDoc.data();
     if (!userData.pushToken) return;
-
-    // In test mode, only send to whitelisted usernames
-    if (isTestMode && !TEST_WHITELIST.includes(userData.username)) return;
 
     messages.push({
       to: userData.pushToken,
@@ -51,14 +44,13 @@ exports.sendEventNotification = onDocumentCreated('events/{eventId}', async (eve
   });
 
   const result = await response.json();
-  console.log(`Notifications sent (testMode: ${isTestMode}):`, result);
+  console.log('Notifications sent:', result);
 });
 
 /**
  * Runs every day at 12:00 PM CST (18:00 UTC)
  * Finds events happening in exactly 2 days and sends RSVP reminders
  * to users who have not yet responded
- * Respects test mode — in test mode only whitelisted users get reminders
  */
 exports.sendRSVPReminders = onSchedule('0 18 * * *', async () => {
   const { default: fetch } = await import('node-fetch');
@@ -102,7 +94,6 @@ exports.sendRSVPReminders = onSchedule('0 18 * * *', async () => {
     const eventData = eventDoc.data();
     const eventName = eventData.name;
     const rsvps = eventData.rsvps || [];
-    const isTestMode = eventData.testMode === true;
 
     // Get list of usernames who have already RSVP'd
     const rsvpdUsernames = rsvps.map(r => r.username);
@@ -110,9 +101,6 @@ exports.sendRSVPReminders = onSchedule('0 18 * * *', async () => {
     // Send reminder to users who have NOT RSVP'd yet
     users.forEach((user) => {
       if (rsvpdUsernames.includes(user.username)) return; // Already RSVP'd, skip
-
-      // In test mode, only send to whitelisted usernames
-      if (isTestMode && !TEST_WHITELIST.includes(user.username)) return;
 
       messages.push({
         to: user.pushToken,
@@ -125,7 +113,7 @@ exports.sendRSVPReminders = onSchedule('0 18 * * *', async () => {
   });
 
   if (messages.length === 0) {
-    console.log('No reminders to send — everyone has RSVP\'d or test mode filtered all recipients');
+    console.log('No reminders to send — everyone has RSVP');
     return;
   }
 
