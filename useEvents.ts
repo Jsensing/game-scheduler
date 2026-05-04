@@ -18,7 +18,7 @@ interface Event {
   id: string;                                    // Firestore document ID
   name: string;                                  // Event name/title
   date: string;                                  // Date in YYYY-MM-DD format
-  type: 'Dnd' | 'Game Night' | 'Canceled';      // Event category/type
+  type: 'Dnd' | 'Game Night' | 'To Be Determined' | 'Canceled';      // Event category/type
   rsvps?: {                                      // Optional array of RSVPs
     username: string;                            // Username of person responding
     status: 'Yes' | 'No' | 'Maybe';             // Their response status
@@ -58,9 +58,8 @@ export function useEvents() {
    * Add a new event to Firestore
    * @param {string} name - Event name
    * @param {string} date - Event date in YYYY-MM-DD format
-   * @param {boolean} testMode - If true, only whitelisted users get notified
    */
-  const addEvent = async (name: string, date: string, testMode: boolean = false) => {
+  const addEvent = async (name: string, date: string) => {
     const trimmed = name.trim();
     
     const duplicate = events.some(
@@ -75,7 +74,6 @@ export function useEvents() {
         date,
         type: trimmed as Event['type'],
         rsvps: [],
-        testMode, // Cloud Function uses this to decide who gets notified
       });
       console.log('✅ Event added to Firebase');
       return true;
